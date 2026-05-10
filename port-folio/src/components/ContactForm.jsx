@@ -23,15 +23,22 @@ function ContactForm() {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN";
     const SERVICE_ID = "service_njm2273";
-    const TEMPLATE_ID = "template_x3je5me"; // 👈 PASTE YOUR NEW TEMPLATE ID HERE
+    const TEMPLATE_ID = "template_x3je5me";
+    const AUTO_REPLY_ID = "template_a86g9wo"; // 👈 PASTE YOUR NEW AUTO-REPLY TEMPLATE ID HERE
 
     try {
-      // 1. Send Email via EmailJS
+      // 1. Send Notification to Admin
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         name: data.user_name,
         email: data.user_email,
         title: data.subject,
         message: data.message,
+      }, PUBLIC_KEY);
+
+      // 2. Send Auto-Reply to User
+      await emailjs.send(SERVICE_ID, AUTO_REPLY_ID, {
+        name: data.user_name,
+        email: data.user_email,
       }, PUBLIC_KEY);
 
       // 2. Save to Database (Server-side)
