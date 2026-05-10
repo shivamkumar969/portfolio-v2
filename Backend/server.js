@@ -179,18 +179,13 @@ app.post('/api/contact', async (req, res) => {
     const newMessage = new Message({ name: user_name, email: user_email, subject, message });
     await newMessage.save();
 
-    // 2. Send Emails (Fail-Proof Configuration)
+    // 2. Send Emails (Simplest Gmail Config)
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      },
-      tls: { rejectUnauthorized: false },
-      connectionTimeout: 5000, // 5 seconds
-      greetingTimeout: 5000
+      }
     });
 
     const mailOptions = {
