@@ -22,9 +22,14 @@
 @media (max-width: 767px) {
   /* Hero Overhaul */
   .hero-section {
-    padding: 80px 0 40px !important;
+    padding: 30px 0 20px !important; /* Reduced from 80px */
     text-align: center;
     overflow: hidden;
+  }
+  
+  .row.align-items-center.min-vh-100 {
+    min-height: auto !important; /* Remove the 100vh push */
+    padding-top: 20px;
   }
 
   .hero-tag {
