@@ -179,19 +179,18 @@ app.post('/api/contact', async (req, res) => {
     const newMessage = new Message({ name: user_name, email: user_email, subject, message });
     await newMessage.save();
 
-    // 2. Send Emails (Master Fix for Gmail on Render)
+    // 2. Send Emails (Fail-Proof Configuration)
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // Use SSL for port 465
-      pool: true,   // Use pooled connections
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
-      tls: {
-        rejectUnauthorized: false
-      }
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 5000, // 5 seconds
+      greetingTimeout: 5000
     });
 
     const mailOptions = {
@@ -202,11 +201,16 @@ app.post('/api/contact', async (req, res) => {
       text: `Name: ${user_name}\nEmail: ${user_email}\n\nMessage:\n${message}`
     };
 
-    await transporter.sendMail(mailOptions);
-    res.json({ message: 'Message sent and saved!' });
+    // Try sending email but DON'T crash if it fails
+    transporter.sendMail(mailOptions).catch(err => {
+      console.error('Email Notification Failed (saved to DB instead):', err.message);
+    });
+
+    // Always return success if saved to DB
+    res.json({ message: 'Message sent and saved! I will get back to you soon.' });
   } catch (error) {
-    console.error('Nodemailer Error:', error.message);
-    res.status(500).json({ error: `Server Error: ${error.message}` });
+    console.error('Database Error:', error.message);
+    res.status(500).json({ error: 'Failed to save message. Please try again.' });
   }
 });
 
