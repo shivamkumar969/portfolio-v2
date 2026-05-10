@@ -5,16 +5,16 @@ import Shivam from "../assets/images/Shivam.png";
 
 function Hero() {
   return (
-    <section className="hero-section premium-hero">
-      {/* Background Blobs (Hidden on mobile via CSS) */}
+    <section className="hero-section premium-hero mobile-force-fix">
+      {/* Background Blobs */}
       <div className="blob blob1"></div>
       <div className="blob blob2"></div>
 
       <div className="container">
-        <div className="row align-items-center min-vh-100 flex-column-reverse flex-lg-row">
+        <div className="row align-items-center mobile-row-fix flex-column-reverse flex-lg-row">
 
           {/* Left Content */}
-          <div className="col-lg-6 text-center text-lg-start mt-5 mt-lg-0">
+          <div className="col-lg-6 text-center text-lg-start mt-5 mt-lg-0 content-col-fix">
             <span className="hero-tag">Hello, I'm</span>
             
             <h1 className="hero-title">Shivam Kumar</h1>
@@ -34,8 +34,8 @@ function Hero() {
               <Link to="/contact" className="btn btn-outline-light rounded-pill px-4">Hire Me</Link>
             </div>
 
-            {/* Social Icons moved here for better mobile flow */}
-            <div className="hero-social-container mt-4">
+            {/* Social Icons moved here */}
+            <div className="mt-4 d-lg-none">
                <Sliderbar />
             </div>
           </div>
