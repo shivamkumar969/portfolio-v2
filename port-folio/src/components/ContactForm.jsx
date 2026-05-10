@@ -48,7 +48,7 @@ function ContactForm() {
         body: JSON.stringify(data)
       });
 
-      setMsg("Message Sent Successfully! Check your email for confirmation ✅");
+      setMsg("Message Sent Successfully! The SK Digital Designs Team will contact you soon. ✅");
       form.current.reset();
     } catch (error) {
       setMsg(`Failed to send message: ${error.text || error.message} ❌`);
