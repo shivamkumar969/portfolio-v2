@@ -14,7 +14,7 @@ const app = express();
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // Allow images to be loaded cross-origin
 app.use(cors({
-  origin: ["http://localhost:5173", "https://port-folio-sage-beta.vercel.app"],
+  origin: ["http://localhost:5173", "https://portfolio-v2-rho-two-56.vercel.app"],
   credentials: true
 }));
 app.use(express.json());
