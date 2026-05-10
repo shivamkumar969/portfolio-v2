@@ -21,13 +21,18 @@ function ContactForm() {
     };
 
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN"; // Replace with your EmailJS Public Key
-    const SERVICE_ID = "service_njm2273"; // Replace with your EmailJS Service ID
-    const TEMPLATE_ID = "__ejs-test-mail-service__"; // Replace with your EmailJS Template ID
+    const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN";
+    const SERVICE_ID = "service_njm2273";
+    const TEMPLATE_ID = "template_x3je5me"; // 👈 PASTE YOUR NEW TEMPLATE ID HERE
 
     try {
-      // 1. Send Email via EmailJS (Client-side)
-      await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form.current, PUBLIC_KEY);
+      // 1. Send Email via EmailJS
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+        name: data.user_name,
+        email: data.user_email,
+        title: data.subject,
+        message: data.message,
+      }, PUBLIC_KEY);
 
       // 2. Save to Database (Server-side)
       await fetch(`${API_URL}/api/contact`, {
