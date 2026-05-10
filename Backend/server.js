@@ -187,6 +187,9 @@ app.post('/api/contact', async (req, res) => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false // Fix for many server environments
       }
     });
 
