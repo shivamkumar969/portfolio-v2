@@ -6,6 +6,11 @@ import Shivam from "../assets/images/Shivam.png";
 function Hero() {
   return (
     <section className="hero-section premium-hero mobile-force-fix">
+      {/* Desktop Social Sidebar */}
+      <div className="d-none d-lg-block">
+        <Sliderbar />
+      </div>
+
       {/* Background Blobs */}
       <div className="blob blob1"></div>
       <div className="blob blob2"></div>
@@ -34,7 +39,7 @@ function Hero() {
               <Link to="/contact" className="btn btn-outline-light rounded-pill px-4">Hire Me</Link>
             </div>
 
-            {/* Social Icons moved here */}
+            {/* Mobile Social Icons */}
             <div className="mt-4 d-lg-none">
                <Sliderbar />
             </div>
