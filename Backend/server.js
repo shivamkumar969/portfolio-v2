@@ -192,17 +192,23 @@ app.post('/api/contact', async (req, res) => {
       from: `"${user_name}" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       replyTo: user_email,
-      subject: `Portfolio: ${subject}`,
-      text: `Name: ${user_name}\nEmail: ${user_email}\n\nMessage:\n${message}`
+      subject: `Portfolio Inquiry: ${subject}`,
+      text: `You have a new message from ${user_name} (${user_email}):\n\n${message}`
     };
 
-    // Try sending email but DON'T crash if it fails
-    transporter.sendMail(mailOptions).catch(err => {
-      console.error('Email Notification Failed (saved to DB instead):', err.message);
-    });
+    const autoReplyOptions = {
+      from: `"Shivam's Portfolio" <${process.env.EMAIL_USER}>`,
+      to: user_email,
+      subject: 'Thank you for your message!',
+      text: `Hello ${user_name},\n\nThank you for reaching out! I have received your message and will get back to you soon.\n\nBest regards,\nShivam`
+    };
+
+    // Try sending both emails
+    transporter.sendMail(mailOptions).catch(err => console.error('Admin Email Failed:', err.message));
+    transporter.sendMail(autoReplyOptions).catch(err => console.error('Auto-Reply Failed:', err.message));
 
     // Always return success if saved to DB
-    res.json({ message: 'Message sent and saved! I will get back to you soon.' });
+    res.json({ message: 'Message sent and saved! Check your email (and spam folder) for a confirmation.' });
   } catch (error) {
     console.error('Database Error:', error.message);
     res.status(500).json({ error: 'Failed to save message. Please try again.' });
