@@ -179,26 +179,27 @@ app.post('/api/contact', async (req, res) => {
     const newMessage = new Message({ name: user_name, email: user_email, subject, message });
     await newMessage.save();
 
-    // 2. Send Emails
+    // 2. Send Emails (Master Fix for Gmail on Render)
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // use STARTTLS
+      port: 465,
+      secure: true, // Use SSL for port 465
+      pool: true,   // Use pooled connections
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       },
       tls: {
-        rejectUnauthorized: false // Fix for many server environments
+        rejectUnauthorized: false
       }
     });
 
     const mailOptions = {
-      from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
+      from: `"${user_name}" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
       replyTo: user_email,
-      subject: `Portfolio: ${subject} from ${user_name}`,
-      text: `Message from ${user_name} (${user_email}):\n\n${message}`
+      subject: `Portfolio: ${subject}`,
+      text: `Name: ${user_name}\nEmail: ${user_email}\n\nMessage:\n${message}`
     };
 
     await transporter.sendMail(mailOptions);
