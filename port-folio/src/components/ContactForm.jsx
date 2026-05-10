@@ -21,23 +21,25 @@ function ContactForm() {
     };
 
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN"; // Replace with your EmailJS Public Key
+    const SERVICE_ID = "service_njm2273"; // Replace with your EmailJS Service ID
+    const TEMPLATE_ID = "__ejs-test-mail-service__"; // Replace with your EmailJS Template ID
 
     try {
-      const res = await fetch(`${API_URL}/api/contact`, {
+      // 1. Send Email via EmailJS (Client-side)
+      await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form.current, PUBLIC_KEY);
+
+      // 2. Save to Database (Server-side)
+      await fetch(`${API_URL}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
 
-      if (res.ok) {
-        setMsg("Message Sent Successfully! Check your email for confirmation ✅");
-        form.current.reset();
-      } else {
-        const errorData = await res.json();
-        setMsg(`Error: ${errorData.error || "Failed to send message"} ❌`);
-      }
+      setMsg("Message Sent Successfully! Check your email for confirmation ✅");
+      form.current.reset();
     } catch (error) {
-      setMsg(`Failed to send message: ${error.message} ❌`);
+      setMsg(`Failed to send message: ${error.text || error.message} ❌`);
     } finally {
       setIsSending(false);
     }
