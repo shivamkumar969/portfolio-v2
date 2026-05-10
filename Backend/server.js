@@ -9,6 +9,15 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// --- Cloudinary Configuration ---
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 app.use(helmet());
@@ -19,43 +28,24 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
-
-// Serve uploaded files statically
-app.use('/uploads', express.static('uploads'));
-
-// Setup Multer for Image Uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+// --- Multer Cloudinary Storage ---
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'portfolio_projects',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
 });
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WEBP images are allowed.'), false);
-  }
-};
 
 const upload = multer({ 
   storage: storage,
-  fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/portfolioDB';
+const APP_URL = process.env.APP_URL || 'http://localhost:5000';
+
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Successfully!'))
   .catch((err) => console.error('❌ Error connecting to MongoDB:', err.message));
@@ -135,28 +125,19 @@ app.get('/api/projects', async (req, res) => {
 });
 
 // Add a new project (Protected + File Upload)
-app.post('/api/projects', verifyAdmin, (req, res, next) => {
-  upload.single('image')(req, res, function (err) {
-    if (err) {
-      return res.status(400).json({ error: err.message });
-    }
-    next();
-  });
-}, async (req, res) => {
+app.post("/api/projects", verifyAdmin, upload.single("image"), async (req, res) => {
   try {
     const { title, description, github, live } = req.body;
-    let imagePath = '';
-
-    if (req.file) {
-      imagePath = 'uploads/' + req.file.filename;
-    } else {
-      return res.status(400).json({ error: 'Image file is required' });
+    const imageUrl = req.file ? req.file.path : ""; // Cloudinary URL
+    
+    if (!imageUrl) {
+        return res.status(400).json({ error: 'Image file is required' });
     }
 
     const newProject = new Project({
       title,
       description,
-      image: imagePath,
+      image: imageUrl,
       github,
       live
     });
