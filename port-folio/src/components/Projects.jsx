@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import PortFolio from "../assets/images/PortFolio.png";
 import Complaint from "../assets/images/Complaint.jpg";
 import ChatBot from "../assets/images/ChatBot.png";
 
-function Projects() {
+function Projects({ limit }) {
   const [projects, setProjects] = useState([]);
   
   const fallbackProjects = [
@@ -51,22 +52,25 @@ function Projects() {
     fetchProjects();
   }, []);
 
+  const displayedProjects = limit ? projects.slice(0, limit) : projects;
+
   return (
     <section className="projects-section page-space">
       <div className="container">
 
         <h2 className="section-title text-center">
-          My Projects
+          {limit ? "Featured Projects" : "All Projects"}
         </h2>
 
         <p className="text-center text-light mt-3">
-          Some of my recent work built using React.js,
-          Bootstrap and modern UI design.
+          {limit 
+            ? "A selection of my best work built using modern technologies." 
+            : "A complete list of my professional work and personal projects."}
         </p>
 
         <div className="row g-4 mt-4">
 
-          {projects.map((item) => (
+          {displayedProjects.map((item) => (
             <div className="col-lg-4 col-md-6" key={item.id}>
 
               <motion.div
@@ -129,175 +133,17 @@ function Projects() {
           ))}
 
         </div>
+
+        {limit && (
+          <div className="text-center mt-5">
+            <Link to="/portfolio" className="btn btn-theme px-5 py-3">
+              View All Projects
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
 export default Projects;
-
-
-// import { useState } from "react";
-// import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
-
-// function Projects() {
-//   const allProjects = [
-//     {
-//       id: 1,
-//       title: "React Portfolio",
-//       category: "React",
-//       image: "https://via.placeholder.com/500x320",
-//     },
-//     {
-//       id: 2,
-//       title: "Business Landing Page",
-//       category: "Landing",
-//       image: "https://via.placeholder.com/500x320",
-//     },
-//     {
-//       id: 3,
-//       title: "Dashboard UI",
-//       category: "UI",
-//       image: "https://via.placeholder.com/500x320",
-//     },
-//     {
-//       id: 4,
-//       title: "Ecommerce Store",
-//       category: "React",
-//       image: "https://via.placeholder.com/500x320",
-//     },
-//     {
-//       id: 5,
-//       title: "Agency Website",
-//       category: "Landing",
-//       image: "https://via.placeholder.com/500x320",
-//     },
-//     {
-//       id: 6,
-//       title: "Admin Panel",
-//       category: "UI",
-//       image: "https://via.placeholder.com/500x320",
-//     },
-//   ];
-
-//   const [active, setActive] = useState("All");
-
-//   const filters = ["All", "React", "UI", "Landing"];
-
-//   const filtered =
-//     active === "All"
-//       ? allProjects
-//       : allProjects.filter((item) => item.category === active);
-
-//   return (
-//     <section className="projects-section">
-//       <div className="container">
-
-//         <h2 className="section-title text-center">
-//           Featured Projects
-//         </h2>
-
-//         {/* Filter Buttons */}
-//         <div className="filter-wrap text-center mt-4">
-//           {filters.map((btn, index) => (
-//             <button
-//               key={index}
-//               className={`filter-btn ${active === btn ? "active-filter" : ""}`}
-//               onClick={() => setActive(btn)}
-//             >
-//               {btn}
-//             </button>
-//           ))}
-//         </div>
-
-//         {/* Cards */}
-//         <div className="row g-4 mt-4">
-
-//           {filtered.map((project) => (
-//             <div className="col-lg-4 col-md-6" key={project.id}>
-//               <div className="project-card premium-project glass-card">
-
-//                 <div className="project-img-wrap">
-//                   <img
-//                     src={project.image}
-//                     alt={project.title}
-//                     className="project-img"
-//                   />
-
-//                   <div className="project-overlay">
-//                     <a href="#" className="overlay-btn">
-//                       <FaGithub />
-//                     </a>
-
-//                     <a href="#" className="overlay-btn">
-//                       <FaExternalLinkAlt />
-//                     </a>
-//                   </div>
-//                 </div>
-
-//                 <div className="mt-3">
-//                   <h4>{project.title}</h4>
-//                   <p className="text-light mb-0">
-//                     {project.category} Project
-//                   </p>
-//                 </div>
-
-//               </div>
-//             </div>
-//           ))}
-
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-
-// export default Projects;
-
-
-
-
-
-
-
-
-
-
-
-// function Projects() {
-//   const projects = [1, 2, 3];
-
-//   return (
-//     <section className="projects-section">
-//       <div className="container">
-//         <h2 className="section-title text-center">Featured Projects</h2>
-
-//         <div className="row g-4 mt-4">
-//           {projects.map((item) => (
-//             <div className="col-lg-4" key={item}>
-//               <div className="project-card glass-card">
-//                 <img
-//                   src="https://via.placeholder.com/400x250"
-//                   alt="project"
-//                   className="project-img"
-//                 />
-
-//                 <h4 className="mt-3">Project {item}</h4>
-
-//                 <p className="text-light">
-//                   Modern portfolio / business website built with React.
-//                 </p>
-
-//                 <button className="btn btn-theme">
-//                   Live Preview
-//                 </button>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-
-// export default Projects;

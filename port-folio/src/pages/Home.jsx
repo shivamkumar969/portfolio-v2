@@ -18,7 +18,7 @@ function Home() {
 
       <Hero />
       <Skills />
-      <Projects />
+      <Projects limit={3} />
 
       <section className="container py-5">
         <h2 className="section-title text-center mb-5">
