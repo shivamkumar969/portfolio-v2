@@ -1,102 +1,62 @@
+/* Tablet & Small Desktop */
 @media (max-width: 991px) {
   .hero-title {
-    font-size: 48px;
+    font-size: clamp(38px, 8vw, 48px) !important;
   }
 
   .hero-subtitle {
-    font-size: 28px;
+    font-size: 24px;
   }
 
-  .section-title,
-  .page-title {
-    font-size: 38px;
+  .page-space {
+    padding: 100px 0 60px;
+  }
+
+  .navbar-collapse {
+    background: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 15px;
+    border: 1px solid var(--border-color);
   }
 
   .social-sidebar {
     display: none;
   }
-
-  .page-space {
-    padding: 120px 0 70px;
-  }
 }
 
+/* Mobile Devices */
 @media (max-width: 767px) {
-  .hero-title {
-    font-size: 38px;
+  .section-title, .page-title {
+    font-size: clamp(28px, 6vw, 36px) !important;
   }
 
-  .hero-subtitle {
-    font-size: 24px;
+  .hero-section {
+    text-align: center;
+    padding-top: 60px;
   }
 
   .hero-text {
-    font-size: 15px;
+    margin: 18px auto;
   }
 
-  .section-title,
-  .page-title {
-    font-size: 30px;
-  }
-
-  .hero-card,
-  .project-card,
-  .skill-box,
-  .contact-form {
-    padding: 20px;
-  }
-
-  .btn-theme,
-  .btn-outline-light {
+  .btn-theme {
     width: 100%;
-    text-align: center;
+    margin-bottom: 10px;
   }
 
-  .navbar-brand {
-    font-size: 24px;
+  .glass-card {
+    padding: 20px !important;
   }
 }
 
+/* Tiny Screens */
 @media (max-width: 480px) {
   .hero-title {
-    font-size: 32px;
+    font-size: 32px !important;
   }
-
-  .section-title,
-  .page-title {
-    font-size: 26px;
+  
+  .container {
+    padding: 0 20px;
   }
-
-  section {
-    padding: 65px 0;
-  }
-}
-
-@media (max-width: 576px) {
-  .filter-wrap {
-    gap: 8px;
-  }
-
-  .filter-btn {
-    padding: 8px 14px;
-    font-size: 14px;
-  }
-}
-
-@media(max-width:768px){
-
-.hero-card{
-  max-width: 340px;
-  padding:18px;
-  margin-bottom:30px;
-}
-
-.hero-img{
-  max-width:280px;
-}
-
-.hero-title{
-  font-size:46px;
-}
-
 }
