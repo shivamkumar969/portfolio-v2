@@ -20,8 +20,10 @@ cloudinary.config({
 });
 
 const app = express();
+
+// --- Security Middleware ---
 app.use(helmet());
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" })); // Allow images to be loaded cross-origin
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(cors({
   origin: ["http://localhost:5173", "https://portfolio-v2-rho-two-56.vercel.app"],
   credentials: true
@@ -42,62 +44,63 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// MongoDB Connection
+// --- MongoDB Connection ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/portfolioDB';
-const APP_URL = process.env.APP_URL || 'http://localhost:5000';
-
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Successfully!'))
   .catch((err) => console.error('❌ Error connecting to MongoDB:', err.message));
 
-// Project Schema
+// --- Models ---
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
-  image: { type: String, required: true }, // Will store the file path or URL
+  image: { type: String, required: true },
   github: { type: String },
   live: { type: String }
 }, { timestamps: true });
 
 const Project = mongoose.model('Project', projectSchema);
 
-// Admin Password from Environment (Default: admin123)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'shiva@9595';
+const MessageSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  subject: String,
+  message: String,
+  date: { type: Date, default: Date.now }
+});
 
-// Auth Middleware
+const Message = mongoose.model("Message", MessageSchema);
+
+// --- Auth Middleware ---
 const verifyAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized access. Token missing.' });
+    return res.status(401).json({ error: 'Unauthorized access.' });
   }
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_fallback_key');
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({ error: 'Forbidden. Admin role required.' });
-    }
+    req.admin = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Unauthorized access. Invalid or expired token.' });
+    return res.status(401).json({ error: 'Invalid token.' });
   }
 };
 
-// Rate limiters
+// --- Rate Limiters ---
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login requests per window
-  message: { error: 'Too many login attempts, please try again later.' }
-});
-
-const contactLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { error: 'Too many messages sent. Please try again later.' }
+  message: { error: 'Too many login attempts.' }
 });
 
-// Login Route
+// --- Routes ---
+
+// Admin Login
 app.post('/api/login', loginLimiter, (req, res) => {
   const { password } = req.body;
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'shiva@9595';
+  
   if (password === ADMIN_PASSWORD) {
     const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET || 'super_secret_fallback_key', { expiresIn: '1d' });
     res.json({ message: 'Login successful', token: token });
@@ -106,7 +109,7 @@ app.post('/api/login', loginLimiter, (req, res) => {
   }
 });
 
-// Get all projects (Public)
+// Project Routes
 app.get('/api/projects', async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
@@ -114,7 +117,7 @@ app.get('/api/projects', async (req, res) => {
       id: p._id,
       title: p.title,
       description: p.description,
-      image: p.image.startsWith('http') ? p.image : `${APP_URL}/${p.image}`,
+      image: p.image,
       github: p.github,
       live: p.live
     }));
@@ -124,189 +127,84 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
-// Add a new project (Protected + File Upload)
 app.post("/api/projects", verifyAdmin, upload.single("image"), async (req, res) => {
   try {
     const { title, description, github, live } = req.body;
-    const imageUrl = req.file ? req.file.path : ""; // Cloudinary URL
+    const imageUrl = req.file ? req.file.path : "";
     
-    if (!imageUrl) {
-        return res.status(400).json({ error: 'Image file is required' });
-    }
+    if (!imageUrl) return res.status(400).json({ error: 'Image is required' });
 
-    const newProject = new Project({
-      title,
-      description,
-      image: imageUrl,
-      github,
-      live
-    });
-
-    const savedProject = await newProject.save();
-
-    res.json({
-      message: 'success',
-      data: {
-        id: savedProject._id,
-        title: savedProject.title,
-        description: savedProject.description,
-        image: savedProject.image.startsWith('http') ? savedProject.image : `${APP_URL}/${savedProject.image}`,
-        github: savedProject.github,
-        live: savedProject.live
-      }
-    });
+    const newProject = new Project({ title, description, image: imageUrl, github, live });
+    await newProject.save();
+    res.json({ message: 'success', data: newProject });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Update a project (Protected + Optional File Upload)
-app.put('/api/projects/:id', verifyAdmin, (req, res, next) => {
-  upload.single('image')(req, res, function (err) {
-    if (err) {
-      return res.status(400).json({ error: err.message });
-    }
-    next();
-  });
-}, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { title, description, github, live } = req.body;
-
-    const project = await Project.findById(id);
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-
-    project.title = title || project.title;
-    project.description = description || project.description;
-    project.github = github || project.github;
-    project.live = live || project.live;
-
-    // If a new image is uploaded, update it and delete the old one
-    if (req.file) {
-      const oldImage = project.image;
-      project.image = 'uploads/' + req.file.filename;
-
-      if (oldImage.startsWith('uploads/')) {
-        const filePath = path.join(__dirname, oldImage);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      }
-    }
-
-    const updatedProject = await project.save();
-
-    res.json({
-      message: 'Updated successfully',
-      data: {
-        id: updatedProject._id,
-        title: updatedProject.title,
-        description: updatedProject.description,
-        image: updatedProject.image.startsWith('http') ? updatedProject.image : `${APP_URL}/${updatedProject.image}`,
-        github: updatedProject.github,
-        live: updatedProject.live
-      }
-    });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-// Delete a project (Protected)
 app.delete('/api/projects/:id', verifyAdmin, async (req, res) => {
   try {
-    const { id } = req.params;
-    const project = await Project.findById(id);
-
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-
-    // Delete image file from server if it's a local upload
-    if (project.image.startsWith('uploads/')) {
-      const filePath = path.join(__dirname, project.image);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-
-    await Project.findByIdAndDelete(id);
+    await Project.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Contact Form Route
-app.post('/api/contact', contactLimiter, async (req, res) => {
-  const { user_name, user_email, subject, message } = req.body;
-
-  if (!user_name || !user_email || !message) {
-    return res.status(400).json({ error: 'Please provide name, email, and message.' });
-  }
-
+// Message Routes
+app.get("/api/messages", verifyAdmin, async (req, res) => {
   try {
-    // Configure NodeMailer Transport
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER, // e.g., your.email@gmail.com
-        pass: process.env.EMAIL_PASS  // e.g., Google App Password
-      }
-    });
-
-    // 1. Email to You (Admin)
-    const adminMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      replyTo: user_email,
-      subject: `Portfolio Contact: ${subject || 'New Message'} from ${user_name}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-          <h3 style="color: #8b5cf6;">New Contact Request</h3>
-          <p><strong>Name:</strong> ${user_name}</p>
-          <p><strong>Email:</strong> ${user_email}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <hr/>
-          <p><strong>Message:</strong></p>
-          <p style="white-space: pre-wrap;">${message}</p>
-        </div>
-      `
-    };
-
-    // 2. Auto-Reply to the User
-    const userMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: user_email,
-      subject: 'Thank you for reaching out!',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-          <h3 style="color: #8b5cf6;">Hello ${user_name},</h3>
-          <p>Thank you for contacting me through my portfolio website!</p>
-          <p>I have successfully received your message regarding "<strong>${subject}</strong>" and I will get back to you as soon as possible.</p>
-          <br>
-          <p>Best regards,</p>
-          <p><strong>Shivam</strong></p>
-        </div>
-      `
-    };
-
-    // Send both emails
-    await transporter.sendMail(adminMailOptions);
-    await transporter.sendMail(userMailOptions);
-
-    res.json({ message: 'Emails sent successfully!' });
+    const messages = await Message.find().sort({ date: -1 });
+    res.json(messages);
   } catch (error) {
-    console.error('Nodemailer Error:', error);
-    res.status(500).json({ error: 'Failed to send email. Please check server email configuration.' });
+    res.status(500).json({ error: "Error fetching messages" });
   }
 });
 
-const PORT = process.env.PORT || 10000;
-const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
+app.delete("/api/messages/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Message.findByIdAndDelete(req.params.id);
+    res.json({ message: "Message deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Error deleting message" });
+  }
+});
 
+// Contact Route
+app.post('/api/contact', async (req, res) => {
+  const { user_name, user_email, subject, message } = req.body;
+
+  try {
+    // 1. Save to Database
+    const newMessage = new Message({ name: user_name, email: user_email, subject, message });
+    await newMessage.save();
+
+    // 2. Send Emails
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: `Portfolio: ${subject} from ${user_name}`,
+      text: `Message from ${user_name} (${user_email}):\n\n${message}`
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ message: 'Message sent and saved!' });
+  } catch (error) {
+    console.error('Contact Error:', error);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+// --- Server Start ---
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

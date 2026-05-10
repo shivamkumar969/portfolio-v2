@@ -392,10 +392,10 @@ function Admin() {
                       </thead>
                       <tbody>
                         {projects.map((project) => (
-                          <tr key={project._id} className="border-bottom border-secondary border-opacity-10">
+                          <tr key={project.id} className="border-bottom border-secondary border-opacity-10">
                             <td className="py-3">
                               <img 
-                                src={project.imageUrl} 
+                                src={project.image} 
                                 alt={project.title} 
                                 className="rounded"
                                 style={{ width: '60px', height: '45px', objectFit: 'cover' }} 
@@ -408,7 +408,7 @@ function Admin() {
                                 <button className="btn btn-sm btn-outline-info" onClick={() => handleEditClick(project)}>
                                   <FaEdit />
                                 </button>
-                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(project._id)}>
+                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(project.id)}>
                                   <FaTrash />
                                 </button>
                               </div>
