@@ -1,62 +1,146 @@
-/* Tablet & Small Desktop */
-@media (max-width: 991px) {
+/* ==========================================================================
+   PREMIUM MOBILE-FIRST RESPONSIVE SYSTEM
+   ========================================================================== */
+
+/* Universal Fluid Spacing */
+:root {
+  --mobile-padding: 20px;
+}
+
+/* TABLET VIEW (Under 1024px) */
+@media (max-width: 1024px) {
   .hero-title {
-    font-size: clamp(38px, 8vw, 48px) !important;
+    font-size: clamp(42px, 10vw, 64px) !important;
   }
-
-  .hero-subtitle {
-    font-size: 24px;
-  }
-
+  
   .page-space {
-    padding: 100px 0 60px;
-  }
-
-  .navbar-collapse {
-    background: var(--bg-secondary);
-    padding: 20px;
-    border-radius: 15px;
-    margin-top: 15px;
-    border: 1px solid var(--border-color);
-  }
-
-  .social-sidebar {
-    display: none;
+    padding: 110px 0 70px;
   }
 }
 
-/* Mobile Devices */
+/* MOBILE VIEW (Under 768px) */
 @media (max-width: 767px) {
-  .section-title, .page-title {
-    font-size: clamp(28px, 6vw, 36px) !important;
+  /* Hero Overhaul */
+  .hero-section {
+    padding: 80px 0 40px !important;
+    text-align: center;
+    overflow: hidden;
   }
 
-  .hero-section {
-    text-align: center;
-    padding-top: 60px;
+  .hero-tag {
+    font-size: 16px;
+  }
+
+  .hero-title {
+    font-size: 38px !important;
+    line-height: 1.2;
+    margin: 15px 0;
+  }
+
+  .hero-subtitle {
+    font-size: 22px !important;
+    display: block;
+    margin-bottom: 20px;
   }
 
   .hero-text {
-    margin: 18px auto;
+    margin: 0 auto 30px !important;
+    font-size: 16px;
+    padding: 0 10px;
+  }
+
+  /* Center Buttons */
+  .hero-section .d-flex {
+    justify-content: center !important;
+    flex-direction: column;
+    gap: 15px !important;
   }
 
   .btn-theme {
     width: 100%;
-    margin-bottom: 10px;
+    padding: 14px 0 !important;
+  }
+
+  /* Hero Image - Make it Pop */
+  .hero-card {
+    margin: 40px auto 0 !important;
+    padding: 15px !important;
+    max-width: 320px !important;
+    border-radius: 24px !important;
+  }
+
+  .hero-img {
+    max-width: 280px !important;
+    border-radius: 18px !important;
+  }
+
+  /* Social Icons Transformation (Horizontal Bar) */
+  .social-sidebar {
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 25px !important;
+    margin: 40px 0 20px !important;
+    width: 100%;
+  }
+
+  .social-sidebar a {
+    width: 50px !important;
+    height: 50px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-size: 20px;
+  }
+
+  /* General Layout */
+  .section-title, .page-title {
+    font-size: 34px !important;
+    text-align: center;
   }
 
   .glass-card {
-    padding: 20px !important;
+    padding: 20px 15px !important;
+  }
+
+  .container {
+    padding-left: var(--mobile-padding);
+    padding-right: var(--mobile-padding);
+  }
+
+  /* Navbar Mobile */
+  .navbar-collapse {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 15px;
+    box-shadow: var(--shadow);
+  }
+
+  .nav-link {
+    padding: 12px 0 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .nav-link:last-child {
+    border: none;
   }
 }
 
-/* Tiny Screens */
+/* SMALL MOBILE (Under 480px) */
 @media (max-width: 480px) {
   .hero-title {
     font-size: 32px !important;
   }
-  
-  .container {
-    padding: 0 20px;
+
+  .hero-subtitle {
+    font-size: 20px !important;
+  }
+
+  .main-title {
+    font-size: 30px !important;
   }
 }
