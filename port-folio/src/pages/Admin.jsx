@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FaTrash, FaPlus, FaLock, FaImage, FaEdit, FaTimes } from "react-icons/fa";
+import { FaTrash, FaPlus, FaLock, FaImage, FaEdit, FaTimes, FaEnvelope, FaProjectDiagram, FaReply } from "react-icons/fa";
 
 function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [activeTab, setActiveTab] = useState("projects"); // "projects" or "messages"
 
   const [projects, setProjects] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -26,6 +28,7 @@ function Admin() {
     if (token) {
       setIsAuthenticated(true);
       fetchProjects();
+      fetchMessages();
     }
   }, []);
 
@@ -43,6 +46,7 @@ function Admin() {
         sessionStorage.setItem("adminToken", data.token);
         setIsAuthenticated(true);
         fetchProjects();
+        fetchMessages();
       } else {
         setLoginError("Invalid password. Access denied.");
       }
@@ -58,6 +62,33 @@ function Admin() {
       if (Array.isArray(data)) setProjects(data);
     } catch (error) {
       console.error("Error fetching projects:", error);
+    }
+  };
+
+  const fetchMessages = async () => {
+    const token = sessionStorage.getItem("adminToken");
+    try {
+      const res = await fetch(`${API_URL}/api/messages`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setMessages(data);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
+  const deleteMessage = async (id) => {
+    if (!window.confirm("Delete this message?")) return;
+    const token = sessionStorage.getItem("adminToken");
+    try {
+      const res = await fetch(`${API_URL}/api/messages/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) fetchMessages();
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   };
 
@@ -165,6 +196,7 @@ function Admin() {
     sessionStorage.removeItem("adminToken");
     setIsAuthenticated(false);
     setProjects([]);
+    setMessages([]);
   };
 
   // --- LOGIN SCREEN ---
@@ -207,200 +239,263 @@ function Admin() {
     <section className="page-space">
       <div className="container">
         
-        <div className="d-flex justify-content-between align-items-center mb-5">
-          <h2 className="section-title m-0">Admin Dashboard</h2>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-4">
+          <h2 className="section-title m-0 text-gradient">Admin Dashboard</h2>
+          
+          <div className="d-flex gap-2 glass-card p-1" style={{ borderRadius: '40px' }}>
+            <button 
+              onClick={() => setActiveTab("projects")} 
+              className={`btn ${activeTab === "projects" ? "btn-theme" : "btn-link text-light text-decoration-none"}`}
+              style={{ borderRadius: '30px', padding: '8px 20px' }}
+            >
+              <FaProjectDiagram className="me-2" /> Projects
+            </button>
+            <button 
+              onClick={() => setActiveTab("messages")} 
+              className={`btn ${activeTab === "messages" ? "btn-theme" : "btn-link text-light text-decoration-none"}`}
+              style={{ borderRadius: '30px', padding: '8px 20px' }}
+            >
+              <FaEnvelope className="me-2" /> Messages {messages.length > 0 && <span className="badge bg-danger ms-1">{messages.length}</span>}
+            </button>
+          </div>
+
           <button onClick={handleLogout} className="btn btn-outline-danger" style={{ borderRadius: '30px' }}>
             Logout
           </button>
         </div>
         
-        <div className="row g-5">
-          
-          {/* Add/Edit Project Form */}
-          <div className="col-lg-5">
+        <AnimatePresence mode="wait">
+          {activeTab === "projects" ? (
             <motion.div 
-              className="glass-card p-4"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
+              key="projects-tab"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="row g-5"
             >
-              <h4 className="mb-4 d-flex align-items-center gap-2">
-                {editingId ? (
-                  <><FaEdit style={{ color: 'var(--secondary-color)' }} /> Edit Project</>
-                ) : (
-                  <><FaPlus style={{ color: 'var(--primary-color)' }} /> Add New Project</>
-                )}
-              </h4>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label small text-light">Project Title</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g. E-Commerce App"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+              {/* Add/Edit Project Form */}
+              <div className="col-lg-5">
+                <div className="glass-card p-4">
+                  <h4 className="mb-4 d-flex align-items-center gap-2">
+                    {editingId ? (
+                      <><FaEdit style={{ color: 'var(--secondary-color)' }} /> Edit Project</>
+                    ) : (
+                      <><FaPlus style={{ color: 'var(--primary-color)' }} /> Add New Project</>
+                    )}
+                  </h4>
+                  <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                      <label className="form-label small text-light">Project Title</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. E-Commerce App"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
 
-                <div className="mb-3">
-                  <label className="form-label small text-light">Image Upload {editingId && "(Optional)"}</label>
-                  <div className="position-relative">
-                    <input
-                      type="file"
-                      id="imageUpload"
-                      className="d-none"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      required={!editingId}
-                    />
-                    <label 
-                      htmlFor="imageUpload" 
-                      className="form-control d-flex align-items-center gap-3"
-                      style={{ 
-                        cursor: 'pointer', 
-                        borderStyle: 'dashed', 
-                        borderWidth: '2px',
-                        padding: '16px',
-                        justifyContent: 'center',
-                        transition: 'var(--transition)'
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--primary-color)'}
-                      onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-color)'}
-                    >
-                      <FaImage size={24} style={{ color: 'var(--primary-color)' }} />
-                      <span style={{ color: 'var(--text-light)' }}>
-                        {imageFile ? imageFile.name : (editingId ? "Click to replace image..." : "Click to browse image file...")}
-                      </span>
-                    </label>
+                    <div className="mb-3">
+                      <label className="form-label small text-light">Image Upload {editingId && "(Optional)"}</label>
+                      <div className="position-relative">
+                        <input
+                          type="file"
+                          id="imageUpload"
+                          className="d-none"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          required={!editingId}
+                        />
+                        <label 
+                          htmlFor="imageUpload" 
+                          className="form-control d-flex align-items-center gap-3"
+                          style={{ 
+                            cursor: 'pointer', 
+                            borderStyle: 'dashed', 
+                            borderWidth: '2px',
+                            padding: '16px',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <FaImage size={24} style={{ color: 'var(--primary-color)' }} />
+                          <span style={{ color: 'var(--text-light)' }}>
+                            {imageFile ? imageFile.name : (editingId ? "Click to replace image..." : "Click to browse image file...")}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="form-label small text-light">Description</label>
+                      <textarea
+                        className="form-control"
+                        placeholder="Short description of the project..."
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows="3"
+                      ></textarea>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <label className="form-label small text-light">GitHub Repository URL</label>
+                      <input
+                        type="url"
+                        className="form-control"
+                        placeholder="https://github.com/..."
+                        name="github"
+                        value={formData.github}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    
+                    <div className="mb-4">
+                      <label className="form-label small text-light">Live Project URL</label>
+                      <input
+                        type="url"
+                        className="form-control"
+                        placeholder="https://..."
+                        name="live"
+                        value={formData.live}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    
+                    <div className="d-flex gap-2">
+                      <button type="submit" className="btn btn-theme w-100 py-3 fw-bold flex-grow-1" disabled={isSubmitting}>
+                        {isSubmitting ? "Saving..." : (editingId ? "Update Project" : "Publish Project")}
+                      </button>
+                      {editingId && (
+                        <button type="button" className="btn btn-outline-secondary" onClick={cancelEdit} title="Cancel Edit">
+                          <FaTimes />
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              {/* Manage Projects Table */}
+              <div className="col-lg-7">
+                <div className="glass-card p-4">
+                  <h4 className="mb-4">Manage Portfolio</h4>
+                  <div className="table-responsive">
+                    <table className="table table-borderless align-middle text-light">
+                      <thead>
+                        <tr className="border-bottom border-secondary">
+                          <th className="pb-3 text-uppercase small opacity-75">Preview</th>
+                          <th className="pb-3 text-uppercase small opacity-75">Title</th>
+                          <th className="pb-3 text-end text-uppercase small opacity-75">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {projects.map((project) => (
+                          <tr key={project._id} className="border-bottom border-secondary border-opacity-10">
+                            <td className="py-3">
+                              <img 
+                                src={project.imageUrl} 
+                                alt={project.title} 
+                                className="rounded"
+                                style={{ width: '60px', height: '45px', objectFit: 'cover' }} 
+                                onError={(e) => e.target.src = "https://via.placeholder.com/60x45?text=Error"}
+                              />
+                            </td>
+                            <td className="py-3 fw-bold">{project.title}</td>
+                            <td className="py-3 text-end">
+                              <div className="d-flex justify-content-end gap-2">
+                                <button className="btn btn-sm btn-outline-info" onClick={() => handleEditClick(project)}>
+                                  <FaEdit />
+                                </button>
+                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(project._id)}>
+                                  <FaTrash />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-
-                <div className="mb-3">
-                  <label className="form-label small text-light">Description</label>
-                  <textarea
-                    className="form-control"
-                    placeholder="Short description of the project..."
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows="3"
-                  ></textarea>
-                </div>
-                
-                <div className="mb-3">
-                  <label className="form-label small text-light">GitHub Repository URL</label>
-                  <input
-                    type="url"
-                    className="form-control"
-                    placeholder="https://github.com/..."
-                    name="github"
-                    value={formData.github}
-                    onChange={handleChange}
-                  />
-                </div>
-                
-                <div className="mb-4">
-                  <label className="form-label small text-light">Live Project URL</label>
-                  <input
-                    type="url"
-                    className="form-control"
-                    placeholder="https://..."
-                    name="live"
-                    value={formData.live}
-                    onChange={handleChange}
-                  />
-                </div>
-                
-                <div className="d-flex gap-2">
-                  <button type="submit" className="btn btn-theme w-100 py-3 fw-bold flex-grow-1" disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : (editingId ? "Update Project" : "Publish Project")}
-                  </button>
-                  {editingId && (
-                    <button type="button" className="btn btn-outline-secondary" onClick={cancelEdit} title="Cancel Edit">
-                      <FaTimes />
-                    </button>
-                  )}
-                </div>
-              </form>
-            </motion.div>
-          </div>
-
-          {/* Manage Projects Table */}
-          <div className="col-lg-7">
-            <motion.div 
-              className="glass-card p-4"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <h4 className="mb-4">Manage Portfolio</h4>
-              
-              <div className="table-responsive mt-3">
-                <table className="table table-borderless align-middle" style={{ '--bs-table-bg': 'transparent', color: 'var(--text-color)' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <th className="pb-3 text-uppercase" style={{ color: 'var(--text-light)', fontSize: '0.8rem', letterSpacing: '1px' }}>Preview</th>
-                      <th className="pb-3 text-uppercase" style={{ color: 'var(--text-light)', fontSize: '0.8rem', letterSpacing: '1px' }}>Title</th>
-                      <th className="pb-3 text-end text-uppercase" style={{ color: 'var(--text-light)', fontSize: '0.8rem', letterSpacing: '1px' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projects.map((project) => (
-                      <tr key={project.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <td className="py-3">
-                          <img 
-                            src={project.image} 
-                            alt={project.title} 
-                            style={{ 
-                              width: '60px', 
-                              height: '45px', 
-                              objectFit: 'cover', 
-                              borderRadius: '8px',
-                              boxShadow: '0 4px 10px rgba(0,0,0,0.2)' 
-                            }} 
-                          />
-                        </td>
-                        <td className="py-3 fw-bold">{project.title}</td>
-                        <td className="py-3 text-end">
-                          <div className="d-flex justify-content-end gap-2">
-                            <button 
-                              className="btn btn-sm"
-                              style={{ backgroundColor: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4', border: '1px solid rgba(6, 182, 212, 0.2)' }}
-                              onClick={() => handleEditClick(project)}
-                              title="Edit Project"
-                            >
-                              <FaEdit />
-                            </button>
-                            <button 
-                              className="btn btn-sm"
-                              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
-                              onClick={() => handleDelete(project.id)}
-                              title="Delete Project"
-                            >
-                              <FaTrash />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {projects.length === 0 && (
-                      <tr>
-                        <td colSpan="3" className="text-center py-5 text-light">
-                          No projects uploaded yet. Start adding some!
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
               </div>
             </motion.div>
-          </div>
-
-        </div>
+          ) : (
+            <motion.div 
+              key="messages-tab"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <div className="glass-card p-4">
+                <h4 className="mb-4 d-flex align-items-center gap-2">
+                  <FaEnvelope style={{ color: 'var(--primary-color)' }} /> 
+                  User Messages
+                </h4>
+                
+                <div className="table-responsive">
+                  <table className="table table-borderless align-middle text-light">
+                    <thead>
+                      <tr className="border-bottom border-secondary">
+                        <th className="pb-3 text-uppercase small opacity-75">Sender</th>
+                        <th className="pb-3 text-uppercase small opacity-75">Subject & Message</th>
+                        <th className="pb-3 text-uppercase small opacity-75">Date</th>
+                        <th className="pb-3 text-end text-uppercase small opacity-75">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {messages.map((msg) => (
+                        <tr key={msg._id} className="border-bottom border-secondary border-opacity-10">
+                          <td className="py-3" style={{ maxWidth: '200px' }}>
+                            <div className="fw-bold">{msg.name}</div>
+                            <div className="small opacity-50">{msg.email}</div>
+                          </td>
+                          <td className="py-3">
+                            <div className="fw-bold text-theme mb-1">{msg.subject}</div>
+                            <div className="small opacity-75">{msg.message}</div>
+                          </td>
+                          <td className="py-3 small opacity-50">
+                            {new Date(msg.date).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 text-end">
+                            <div className="d-flex justify-content-end gap-2">
+                              <a 
+                                href={`mailto:${msg.email}?subject=Re: ${msg.subject}`} 
+                                className="btn btn-sm btn-outline-primary"
+                                title="Reply via Email"
+                              >
+                                <FaReply />
+                              </a>
+                              <button 
+                                className="btn btn-sm btn-outline-danger" 
+                                onClick={() => deleteMessage(msg._id)}
+                                title="Delete Message"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {messages.length === 0 && (
+                        <tr>
+                          <td colSpan="4" className="text-center py-5 opacity-50">
+                            Your inbox is empty. No messages yet!
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
+
 }
 
 export default Admin;
