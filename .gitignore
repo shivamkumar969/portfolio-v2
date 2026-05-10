@@ -1,0 +1,25 @@
+# Node modules
+node_modules/
+Backend/node_modules/
+port-folio/node_modules/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+
+# Backend specific
+Backend/uploads/
+Backend/projects.db
+Backend/projects.db-journal
+
+# Build outputs
+port-folio/dist/
+port-folio/build/
+
+# OS generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+@echo off
+echo Installing Frontend Dependencies...
+call npm install
+echo Starting Frontend React App...
+call npm run dev
+pause
