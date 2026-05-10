@@ -181,7 +181,9 @@ app.post('/api/contact', async (req, res) => {
 
     // 2. Send Emails
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // use SSL
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -189,8 +191,9 @@ app.post('/api/contact', async (req, res) => {
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
+      replyTo: user_email,
       subject: `Portfolio: ${subject} from ${user_name}`,
       text: `Message from ${user_name} (${user_email}):\n\n${message}`
     };
@@ -198,8 +201,8 @@ app.post('/api/contact', async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.json({ message: 'Message sent and saved!' });
   } catch (error) {
-    console.error('Contact Error:', error);
-    res.status(500).json({ error: 'Failed to process request' });
+    console.error('Nodemailer Error:', error.message);
+    res.status(500).json({ error: `Server Error: ${error.message}` });
   }
 });
 
