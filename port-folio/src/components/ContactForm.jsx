@@ -33,10 +33,11 @@ function ContactForm() {
         setMsg("Message Sent Successfully! Check your email for confirmation ✅");
         form.current.reset();
       } else {
-        setMsg("Failed to send message. Please try again ❌");
+        const errorData = await res.json();
+        setMsg(`Error: ${errorData.error || "Failed to send message"} ❌`);
       }
     } catch (error) {
-      setMsg("Failed to send message. Server offline ❌");
+      setMsg(`Failed to send message: ${error.message} ❌`);
     } finally {
       setIsSending(false);
     }
