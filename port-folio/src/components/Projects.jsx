@@ -127,10 +127,24 @@ function Projects({ limit }) {
                     </p>
                   )}
 
-                  <div className="mt-auto pt-3 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
-                    <span className="text-light small fw-semibold opacity-75">
-                      React.js • Modern UI
-                    </span>
+                  <div className="mt-auto pt-3 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div className="d-flex flex-wrap gap-1 align-items-center">
+                      {item.technologies ? (
+                        item.technologies.split(",").map((tech, idx) => (
+                          <span 
+                            key={idx} 
+                            className="badge bg-theme bg-opacity-10 text-theme border border-theme border-opacity-25 px-2 py-1 small fw-semibold"
+                            style={{ borderRadius: '6px', fontSize: '0.75rem' }}
+                          >
+                            {tech.trim()}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-light small fw-semibold opacity-75">
+                          React.js • Modern UI
+                        </span>
+                      )}
+                    </div>
                     
                     {/* Always visible responsive quick links for touch devices or immediate clicks */}
                     <div className="d-flex gap-3 align-items-center">

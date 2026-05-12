@@ -35,13 +35,13 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'portfolio_projects',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp', 'pdf'],
   },
 });
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit for high-res images and documents
 });
 
 // --- MongoDB Connection ---
@@ -54,12 +54,30 @@ mongoose.connect(MONGO_URI)
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
+  technologies: { type: String }, // Comma separated or stringified array
   image: { type: String, required: true },
   github: { type: String },
   live: { type: String }
 }, { timestamps: true });
 
 const Project = mongoose.model('Project', projectSchema);
+
+const SkillSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  color: { type: String, default: '#8b5cf6' },
+  iconName: { type: String, default: 'FaCode' },
+  order: { type: Number, default: 0 }
+});
+
+const Skill = mongoose.model('Skill', SkillSchema);
+
+const SettingSchema = new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  aboutContent: { type: String },
+  resumeUrl: { type: String }
+});
+
+const Setting = mongoose.model('Setting', SettingSchema);
 
 const MessageSchema = new mongoose.Schema({
   name: String,
@@ -117,6 +135,7 @@ app.get('/api/projects', async (req, res) => {
       id: p._id,
       title: p.title,
       description: p.description,
+      technologies: p.technologies || "",
       image: p.image,
       github: p.github,
       live: p.live
@@ -129,14 +148,28 @@ app.get('/api/projects', async (req, res) => {
 
 app.post("/api/projects", verifyAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { title, description, github, live } = req.body;
+    const { title, description, technologies, github, live } = req.body;
     const imageUrl = req.file ? req.file.path : "";
     
     if (!imageUrl) return res.status(400).json({ error: 'Image is required' });
 
-    const newProject = new Project({ title, description, image: imageUrl, github, live });
+    const newProject = new Project({ title, description, technologies, image: imageUrl, github, live });
     await newProject.save();
     res.json({ message: 'success', data: newProject });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put("/api/projects/:id", verifyAdmin, upload.single("image"), async (req, res) => {
+  try {
+    const { title, description, technologies, github, live } = req.body;
+    const updateData = { title, description, technologies, github, live };
+    if (req.file) {
+      updateData.image = req.file.path;
+    }
+    const updated = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json({ message: 'updated', data: updated });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -146,6 +179,88 @@ app.delete('/api/projects/:id', verifyAdmin, async (req, res) => {
   try {
     await Project.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Skills Routes
+app.get('/api/skills', async (req, res) => {
+  try {
+    const skills = await Skill.find().sort({ order: 1, createdAt: 1 });
+    res.json(skills);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/skills', verifyAdmin, async (req, res) => {
+  try {
+    const { name, color, iconName, order } = req.body;
+    const newSkill = new Skill({ name, color, iconName, order });
+    await newSkill.save();
+    res.json(newSkill);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/skills/:id', verifyAdmin, async (req, res) => {
+  try {
+    await Skill.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Skill deleted' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Settings Routes
+app.get('/api/settings', async (req, res) => {
+  try {
+    let setting = await Setting.findOne({ key: 'global_profile' });
+    if (!setting) {
+      setting = new Setting({ 
+        key: 'global_profile', 
+        aboutContent: "I build premium modern websites with React.js, Bootstrap 5, responsive layouts and smooth user experiences.",
+        resumeUrl: ""
+      });
+      await setting.save();
+    }
+    res.json(setting);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/settings', verifyAdmin, async (req, res) => {
+  try {
+    const { aboutContent, resumeUrl } = req.body;
+    let setting = await Setting.findOne({ key: 'global_profile' });
+    if (!setting) {
+      setting = new Setting({ key: 'global_profile', aboutContent, resumeUrl });
+    } else {
+      if (aboutContent !== undefined) setting.aboutContent = aboutContent;
+      if (resumeUrl !== undefined) setting.resumeUrl = resumeUrl;
+    }
+    await setting.save();
+    res.json(setting);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Resume File Re-Upload Endpoint
+app.post('/api/settings/resume', verifyAdmin, upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Resume file is required' });
+    let setting = await Setting.findOne({ key: 'global_profile' });
+    if (!setting) {
+      setting = new Setting({ key: 'global_profile', resumeUrl: req.file.path });
+    } else {
+      setting.resumeUrl = req.file.path;
+    }
+    await setting.save();
+    res.json({ message: 'Resume uploaded successfully', resumeUrl: req.file.path });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

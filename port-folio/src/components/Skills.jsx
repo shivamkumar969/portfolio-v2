@@ -1,15 +1,34 @@
-import { FaHtml5, FaCss3Alt, FaJs, FaBootstrap, FaReact, FaGithub } from "react-icons/fa";
+import * as FaIcons from "react-icons/fa";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 function Skills() {
-  const skills = [
-    { name: "HTML5", icon: FaHtml5, color: "#E34F26" },
-    { name: "CSS3", icon: FaCss3Alt, color: "#1572B6" },
-    { name: "JavaScript", icon: FaJs, color: "#F7DF1E" },
-    { name: "Bootstrap 5", icon: FaBootstrap, color: "#7952B3" },
-    { name: "React.js", icon: FaReact, color: "#61DAFB" },
-    { name: "Git & GitHub", icon: FaGithub, color: "#f8fafc" }
+  const defaultSkills = [
+    { name: "HTML5", iconName: "FaHtml5", color: "#E34F26" },
+    { name: "CSS3", iconName: "FaCss3Alt", color: "#1572B6" },
+    { name: "JavaScript", iconName: "FaJs", color: "#F7DF1E" },
+    { name: "Bootstrap 5", iconName: "FaBootstrap", color: "#7952B3" },
+    { name: "React.js", iconName: "FaReact", color: "#61DAFB" },
+    { name: "Git & GitHub", iconName: "FaGithub", color: "#f8fafc" }
   ];
+
+  const [skills, setSkills] = useState(defaultSkills);
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const fetchSkills = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/skills`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setSkills(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch live database skills:", error);
+      }
+    };
+    fetchSkills();
+  }, []);
 
   return (
     <section className="skills-section page-space">
@@ -21,7 +40,8 @@ function Skills() {
 
         <div className="row g-3 g-md-4 justify-content-center">
           {skills.map((item, index) => {
-            const IconComponent = item.icon;
+            // Dynamic wildcard lookup maps vector models dynamically from string identifiers
+            const IconComponent = FaIcons[item.iconName] || FaIcons.FaCode;
             return (
               <div className="col-6 col-md-4 col-lg-3" key={index}>
                 <motion.div 
@@ -30,8 +50,8 @@ function Skills() {
                   whileHover={{ y: -6, scale: 1.03, borderColor: item.color }}
                   transition={{ duration: 0.3 }}
                 >
-                  <IconComponent size={42} style={{ color: item.color }} />
-                  <span className="fw-bold mt-2 text-light small" style={{ fontSize: '0.95rem', letterSpacing: '0.5px' }}>
+                  <IconComponent size={42} style={{ color: item.color || "#8b5cf6" }} />
+                  <span className="fw-bold mt-2 text-light small text-truncate w-100 text-center" style={{ fontSize: '0.95rem', letterSpacing: '0.5px' }}>
                     {item.name}
                   </span>
                 </motion.div>
