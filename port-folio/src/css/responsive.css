@@ -62,21 +62,22 @@
     padding: 0 15px !important;
   }
 
-  /* Compact Hero Image Container */
+  /* Bolder Hero Image Container for Premium Mobile Readability */
   .hero-img-container {
-    margin-top: 30px !important;
-    min-height: 300px !important;
-    max-width: 280px !important;
+    margin-top: 35px !important;
+    min-height: 350px !important;
+    max-width: 340px !important;
   }
 
   .hero-glow-circle {
-    width: 220px !important;
-    height: 220px !important;
-    bottom: 5px !important;
+    width: 260px !important;
+    height: 260px !important;
+    bottom: 12px !important;
   }
 
   .hero-img {
-    max-width: 220px !important;
+    max-width: 290px !important;
+    width: 100% !important;
   }
 
   .hero-title {
