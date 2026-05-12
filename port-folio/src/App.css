@@ -164,63 +164,67 @@ img {
 }
 
 /* HERO RIGHT SIDE */
-.hero-card{
+.hero-img-container {
   position: relative;
-  padding: 28px;
-  border-radius: 32px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(16px);
-  box-shadow:
-    0 20px 60px rgba(0,0,0,.35),
-    inset 0 0 0 1px rgba(255,255,255,.03);
-  max-width: 520px;
+  width: 100%;
+  max-width: 440px;
   margin: auto;
-  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  min-height: 460px;
 }
 
-/* GLOW RING */
-.hero-card::before{
-  content:"";
-  position:absolute;
-  inset:-2px;
-  border-radius:34px;
-  padding:2px;
-  background: linear-gradient(
-    135deg,
-    rgba(139,92,246,.7),
-    rgba(6,182,212,.6)
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
+/* GORGEOUS AMBIENT PEDESTAL / CIRCLE */
+.hero-glow-circle {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  bottom: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--primary-color) 0%, rgba(6, 182, 212, 0.8) 70%, transparent 100%);
+  opacity: 0.7;
+  filter: blur(4px);
+  box-shadow: 0 0 50px rgba(139, 92, 246, 0.45);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: pulsePedestal 5s ease-in-out infinite alternate;
+}
+
+@keyframes pulsePedestal {
+  0% { transform: scale(1) translateY(0); opacity: 0.6; }
+  100% { transform: scale(1.05) translateY(-6px); opacity: 0.85; }
 }
 
 /* IMAGE */
-.hero-img{
-  width:100%;
-  max-width:420px;
-  height:auto;
-  border-radius:24px;
-  object-fit:cover;
-  display:block;
-  margin:auto;
-  box-shadow: 0 25px 60px rgba(0,0,0,.45);
-  animation: floatHero 4s ease-in-out infinite;
-  transition: .4s ease;
+.hero-img {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  display: block;
+  /* Perfect rendering for transparent PNG cutouts: real silhouette trace drop-shadow */
+  filter: drop-shadow(0px 18px 25px rgba(0, 0, 0, 0.7));
+  animation: floatHero 5s ease-in-out infinite;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: bottom center;
 }
 
-.hero-card:hover .hero-img{
-  transform: scale(1.03);
+.hero-img-container:hover .hero-glow-circle {
+  transform: scale(1.12);
+  opacity: 0.95;
+  box-shadow: 0 0 70px rgba(139, 92, 246, 0.75);
+}
+
+.hero-img-container:hover .hero-img {
+  transform: scale(1.05) translateY(-8px);
 }
 
 /* FLOAT */
-@keyframes floatHero{
-  0%{transform:translateY(0);}
-  50%{transform:translateY(-10px);}
-  100%{transform:translateY(0);}
+@keyframes floatHero {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
 }
 
 .hero-section{

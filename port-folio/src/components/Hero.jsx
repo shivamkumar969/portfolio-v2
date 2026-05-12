@@ -47,9 +47,10 @@ function Hero() {
           </div>
 
           {/* Right Image */}
-          <div className="col-lg-6 text-center mt-5 mt-lg-0">
-            <div className="hero-card premium-card d-flex justify-content-center align-items-center">
-              <img src={Shivam} alt="Profile" className="hero-img" loading="eager" />
+          <div className="col-lg-6 text-center mt-5 mt-lg-0 d-flex justify-content-center">
+            <div className="hero-img-container">
+              <div className="hero-glow-circle"></div>
+              <img src={Shivam} alt="Shivam Kumar" className="hero-img" loading="eager" />
             </div>
           </div>
 

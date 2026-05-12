@@ -38,10 +38,6 @@
   }
 }
 
-.hero-card {
-  animation: floatY 4s ease-in-out infinite;
-}
-
 .btn-theme {
   animation: glowPulse 2.5s infinite;
 }
@@ -78,14 +74,4 @@ section,
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes floatSoft {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.hero-card {
-  animation: floatSoft 4s ease-in-out infinite;
-}
+}
