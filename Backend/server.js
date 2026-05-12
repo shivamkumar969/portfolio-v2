@@ -57,7 +57,8 @@ const projectSchema = new mongoose.Schema({
   technologies: { type: String }, // Comma separated or stringified array
   image: { type: String, required: true },
   github: { type: String },
-  live: { type: String }
+  live: { type: String },
+  isVisible: { type: Boolean, default: true }
 }, { timestamps: true });
 
 const Project = mongoose.model('Project', projectSchema);
@@ -140,7 +141,8 @@ app.get('/api/projects', async (req, res) => {
       technologies: p.technologies || "",
       image: p.image,
       github: p.github,
-      live: p.live
+      live: p.live,
+      isVisible: p.isVisible !== false
     }));
     res.json(formattedProjects);
   } catch (error) {
@@ -150,12 +152,20 @@ app.get('/api/projects', async (req, res) => {
 
 app.post("/api/projects", verifyAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { title, description, technologies, github, live } = req.body;
+    const { title, description, technologies, github, live, isVisible } = req.body;
     const imageUrl = req.file ? req.file.path : "";
     
     if (!imageUrl) return res.status(400).json({ error: 'Image is required' });
 
-    const newProject = new Project({ title, description, technologies, image: imageUrl, github, live });
+    const newProject = new Project({ 
+      title, 
+      description, 
+      technologies, 
+      image: imageUrl, 
+      github, 
+      live,
+      isVisible: isVisible !== undefined ? Boolean(isVisible === 'true' || isVisible === true) : true
+    });
     await newProject.save();
     res.json({ message: 'success', data: newProject });
   } catch (error) {
@@ -165,13 +175,28 @@ app.post("/api/projects", verifyAdmin, upload.single("image"), async (req, res) 
 
 app.put("/api/projects/:id", verifyAdmin, upload.single("image"), async (req, res) => {
   try {
-    const { title, description, technologies, github, live } = req.body;
+    const { title, description, technologies, github, live, isVisible } = req.body;
     const updateData = { title, description, technologies, github, live };
     if (req.file) {
       updateData.image = req.file.path;
     }
+    if (isVisible !== undefined) {
+      updateData.isVisible = Boolean(isVisible === 'true' || isVisible === true);
+    }
     const updated = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json({ message: 'updated', data: updated });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.patch('/api/projects/:id/toggle', verifyAdmin, async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ error: 'Project entry not found' });
+    project.isVisible = project.isVisible === undefined ? false : !project.isVisible;
+    await project.save();
+    res.json(project);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

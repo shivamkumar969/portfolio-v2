@@ -246,6 +246,21 @@ function Admin() {
     }
   };
 
+  const handleToggleProjectVisibility = async (id) => {
+    const token = sessionStorage.getItem("adminToken");
+    try {
+      const res = await fetch(`${API_URL}/api/projects/${id}/toggle`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error("Error toggling project visibility:", error);
+    }
+  };
+
   // Submit Skills Form (Create or Modify)
   const handleSkillSubmit = async (e) => {
     e.preventDefault();
@@ -677,24 +692,40 @@ function Admin() {
                       </thead>
                       <tbody>
                         {projects.map((p) => (
-                          <tr key={p.id} className="border-bottom border-secondary border-opacity-10">
+                          <tr 
+                            key={p.id} 
+                            className={`border-bottom border-secondary border-opacity-10 ${p.isVisible === false ? 'opacity-50' : ''}`}
+                            style={{ transition: 'all 0.2s ease' }}
+                          >
                             <td className="py-3" style={{ width: '80px' }}>
                               <div className="rounded-3 overflow-hidden bg-dark" style={{ width: '64px', height: '48px' }}>
                                 <img src={p.image} alt="" className="w-100 h-100 object-fit-cover" />
                               </div>
                             </td>
                             <td className="py-3">
-                              <div className="fw-bold">{p.title}</div>
+                              <div className="fw-bold d-flex align-items-center flex-wrap gap-2">
+                                {p.title}
+                                {p.isVisible === false && (
+                                  <span className="badge bg-danger bg-opacity-25 text-danger small">Hidden</span>
+                                )}
+                              </div>
                               {p.technologies && (
                                 <div className="text-theme small opacity-75 mt-1">{p.technologies}</div>
                               )}
                             </td>
-                            <td className="py-3 text-end">
+                            <td className="py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
                               <div className="d-flex justify-content-end gap-2">
-                                <button className="btn btn-sm btn-outline-info" onClick={() => handleEditClick(p)}>
+                                <button 
+                                  className={`btn btn-sm ${p.isVisible === false ? 'btn-outline-secondary' : 'btn-outline-success'}`} 
+                                  onClick={() => handleToggleProjectVisibility(p.id)}
+                                  title={p.isVisible === false ? "Enable Dashboard Rendering" : "Disable Dashboard Rendering"}
+                                >
+                                  {p.isVisible === false ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                                <button className="btn btn-sm btn-outline-info" onClick={() => handleEditClick(p)} title="Modify Document">
                                   <FaEdit />
                                 </button>
-                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(p.id)}>
+                                <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(p.id)} title="Drop Entry">
                                   <FaTrash />
                                 </button>
                               </div>

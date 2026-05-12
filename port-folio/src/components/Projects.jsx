@@ -43,7 +43,9 @@ function Projects({ limit }) {
         const res = await fetch(`${API_URL}/api/projects`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setProjects(data);
+          // Exclude modules dynamically flagged as hidden by operators
+          const activeProjects = data.filter(p => p.isVisible !== false);
+          setProjects(activeProjects.length > 0 ? activeProjects : fallbackProjects);
         } else {
           setProjects(fallbackProjects);
         }
