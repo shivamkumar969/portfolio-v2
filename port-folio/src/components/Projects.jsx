@@ -13,6 +13,7 @@ function Projects({ limit }) {
     {
       id: "f1",
       title: "Portfolio Website",
+      technologies: "React.js, Framer Motion, Bootstrap 5",
       image: PortFolio,
       github: "#",
       live: "#",
@@ -20,6 +21,7 @@ function Projects({ limit }) {
     {
       id: "f2",
       title: "Dashboard UI",
+      technologies: "React.js, Node.js, Express, Chart.js",
       image: ChatBot,
       github: "#",
       live: "https://chatbott-80bq.onrender.com/chat",
@@ -27,6 +29,7 @@ function Projects({ limit }) {
     {
       id: "f3",
       title: "Business Landing Page",
+      technologies: "HTML5, CSS3, JavaScript, UI/UX",
       image: Complaint,
       github: "#",
       live: "https://share.google/Y6lfKg1Pk8zMSEwJm",
