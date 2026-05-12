@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { FaFilePdf, FaLaptopCode } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 function About() {
   const [bio, setBio] = useState("I create premium modern websites leveraging advanced React.js architectures, sleek Bootstrap 5 responsive frameworks, and fluid user experiences designed for peak accessibility and visual brilliance.");
@@ -63,13 +64,13 @@ function About() {
                     <FaFilePdf size={18} /> View Documented Resume
                   </a>
                 ) : (
-                  <button 
-                    onClick={() => alert("Resume bindings currently tracking base deployment core.")} 
-                    className="btn btn-outline-secondary px-4 py-3 fw-medium d-flex align-items-center gap-2"
+                  <Link 
+                    to="/resume" 
+                    className="btn btn-theme px-4 py-3 fw-bold d-flex align-items-center gap-2 shadow-lg text-decoration-none"
                     style={{ borderRadius: '12px' }}
                   >
-                    <FaFilePdf size={18} /> Credentials Registry Active
-                  </button>
+                    <FaFilePdf size={18} /> View Documented CV
+                  </Link>
                 )}
               </div>
             </div>
