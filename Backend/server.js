@@ -197,9 +197,28 @@ app.get('/api/skills', async (req, res) => {
 app.post('/api/skills', verifyAdmin, async (req, res) => {
   try {
     const { name, color, iconName, order } = req.body;
-    const newSkill = new Skill({ name, color, iconName, order });
+    const cleanName = name ? name.trim() : "";
+    const cleanIcon = iconName ? iconName.trim() : "FaCode";
+    const cleanColor = color ? color.trim() : "#8b5cf6";
+    const newSkill = new Skill({ name: cleanName, color: cleanColor, iconName: cleanIcon, order: Number(order) || 0 });
     await newSkill.save();
     res.json(newSkill);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/skills/:id', verifyAdmin, async (req, res) => {
+  try {
+    const { name, color, iconName, order } = req.body;
+    const updateData = {};
+    if (name) updateData.name = name.trim();
+    if (color) updateData.color = color.trim();
+    if (iconName) updateData.iconName = iconName.trim();
+    if (order !== undefined) updateData.order = Number(order);
+
+    const updated = await Skill.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.json(updated);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

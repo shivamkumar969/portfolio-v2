@@ -33,6 +33,7 @@ function Admin() {
     iconName: "FaCode",
     order: 0
   });
+  const [editingSkillId, setEditingSkillId] = useState(null);
 
   // Settings states
   const [aboutContent, setAboutContent] = useState("");
@@ -245,13 +246,16 @@ function Admin() {
     }
   };
 
-  // Submit Skills Form
+  // Submit Skills Form (Create or Modify)
   const handleSkillSubmit = async (e) => {
     e.preventDefault();
     const token = sessionStorage.getItem("adminToken");
+    const url = editingSkillId ? `${API_URL}/api/skills/${editingSkillId}` : `${API_URL}/api/skills`;
+    const method = editingSkillId ? "PUT" : "POST";
+
     try {
-      const res = await fetch(`${API_URL}/api/skills`, {
-        method: "POST",
+      const res = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -260,14 +264,31 @@ function Admin() {
       });
       if (res.ok) {
         setSkillFormData({ name: "", color: "#8b5cf6", iconName: "FaCode", order: 0 });
+        setEditingSkillId(null);
         fetchSkills();
-        alert("Skill badge configured successfully!");
+        alert(`Skill badge ${editingSkillId ? "updated" : "configured"} successfully!`);
       } else {
         alert("Execution failure while staging skill data.");
       }
     } catch (error) {
       console.error("Error saving skill:", error);
     }
+  };
+
+  const startEditSkill = (skillItem) => {
+    setEditingSkillId(skillItem._id);
+    setSkillFormData({
+      name: skillItem.name || "",
+      color: skillItem.color || "#8b5cf6",
+      iconName: skillItem.iconName || "FaCode",
+      order: skillItem.order || 0
+    });
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const cancelEditSkill = () => {
+    setEditingSkillId(null);
+    setSkillFormData({ name: "", color: "#8b5cf6", iconName: "FaCode", order: 0 });
   };
 
   const handleDeleteSkill = async (id) => {
@@ -278,7 +299,10 @@ function Admin() {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
-      if (res.ok) fetchSkills();
+      if (res.ok) {
+        if (editingSkillId === id) cancelEditSkill();
+        fetchSkills();
+      }
     } catch (error) {
       console.error("Error deleting skill:", error);
     }
@@ -658,9 +682,17 @@ function Admin() {
               className="row g-5"
             >
               <div className="col-lg-5">
-                <div className="glass-card p-4">
+                <div className={`glass-card p-4 border ${editingSkillId ? 'border-info border-opacity-50' : 'border-secondary border-opacity-10'}`} style={{ transition: 'all 0.3s ease' }}>
                   <h4 className="mb-4 d-flex align-items-center gap-2">
-                    <FaPlus style={{ color: 'var(--primary-color)' }} /> Inject New Skill
+                    {editingSkillId ? (
+                      <>
+                        <FaEdit className="text-info" /> Modify Target Node
+                      </>
+                    ) : (
+                      <>
+                        <FaPlus style={{ color: 'var(--primary-color)' }} /> Inject New Skill
+                      </>
+                    )}
                   </h4>
                   <form onSubmit={handleSkillSubmit}>
                     <div className="mb-3">
@@ -712,9 +744,16 @@ function Admin() {
                         onChange={(e) => setSkillFormData({...skillFormData, order: parseInt(e.target.value) || 0})}
                       />
                     </div>
-                    <button type="submit" className="btn btn-theme w-100 py-3 fw-bold">
-                      Provision Skill Item
-                    </button>
+                    <div className="d-flex gap-2">
+                      <button type="submit" className={`btn ${editingSkillId ? 'btn-info text-dark' : 'btn-theme'} flex-grow-1 py-3 fw-bold`}>
+                        {editingSkillId ? "Commit Updates" : "Provision Skill Item"}
+                      </button>
+                      {editingSkillId && (
+                        <button type="button" className="btn btn-outline-secondary px-3 py-3 fw-bold" onClick={cancelEditSkill}>
+                          Cancel
+                        </button>
+                      )}
+                    </div>
                   </form>
                 </div>
               </div>
@@ -722,24 +761,42 @@ function Admin() {
               <div className="col-lg-7">
                 <div className="glass-card p-4">
                   <h4 className="mb-4">Dynamic Array Store</h4>
-                  <div className="table-responsive">
-                    <table className="table table-borderless align-middle text-light">
+                  {/* Visual Container bounded with internal native scrolling locks */}
+                  <div className="table-responsive pe-1" style={{ maxHeight: '480px', overflowY: 'auto' }}>
+                    <table className="table table-borderless align-middle text-light mb-0">
                       <thead>
-                        <tr className="border-bottom border-secondary opacity-75">
+                        <tr className="border-bottom border-secondary opacity-75 sticky-top bg-dark" style={{ zIndex: 2 }}>
                           <th className="pb-3 text-uppercase small">Indicator</th>
                           <th className="pb-3 text-uppercase small">Name</th>
-                          <th className="pb-3 text-end text-uppercase small">Action</th>
+                          <th className="pb-3 text-end text-uppercase small">Controls</th>
                         </tr>
                       </thead>
                       <tbody>
                         {skills.map((s) => (
-                          <tr key={s._id} className="border-bottom border-secondary border-opacity-10">
-                            <td className="py-3">
-                              <span className="d-inline-block rounded-circle" style={{ width: '20px', height: '20px', background: s.color }}></span>
+                          <tr 
+                            key={s._id} 
+                            className="border-bottom border-secondary border-opacity-10"
+                            style={{ background: editingSkillId === s._id ? 'rgba(139, 92, 246, 0.15)' : 'transparent', transition: 'background 0.2s ease' }}
+                          >
+                            <td className="py-3" style={{ width: '60px' }}>
+                              <span className="d-inline-block rounded-circle shadow-sm" style={{ width: '20px', height: '20px', background: s.color }}></span>
                             </td>
-                            <td className="py-3 fw-bold">{s.name} <span className="small text-muted ms-2">({s.iconName})</span></td>
-                            <td className="py-3 text-end">
-                              <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteSkill(s._id)}>
+                            <td className="py-3 fw-bold">
+                              {s.name} <span className="small text-theme opacity-75 ms-2">({s.iconName})</span>
+                            </td>
+                            <td className="py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
+                              <button 
+                                className={`btn btn-sm ${editingSkillId === s._id ? 'btn-info text-dark' : 'btn-outline-info'} me-2`} 
+                                onClick={() => startEditSkill(s)} 
+                                title="Lock Record for Editing"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button 
+                                className="btn btn-sm btn-outline-danger" 
+                                onClick={() => handleDeleteSkill(s._id)} 
+                                title="Purge Record"
+                              >
                                 <FaTrash />
                               </button>
                             </td>
@@ -747,7 +804,7 @@ function Admin() {
                         ))}
                         {skills.length === 0 && (
                           <tr>
-                            <td colSpan="3" className="text-center py-4 opacity-50">
+                            <td colSpan="3" className="text-center py-5 opacity-50">
                               System running core presets. No custom override nodes registered.
                             </td>
                           </tr>
