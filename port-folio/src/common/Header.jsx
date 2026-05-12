@@ -39,11 +39,23 @@ function Header() {
     return <FaDesktop title="Auto (System) Mode" />;
   };
 
+  const closeMenu = () => {
+    const menu = document.getElementById("menu");
+    if (menu && menu.classList.contains("show")) {
+      if (window.bootstrap && window.bootstrap.Collapse) {
+        const bsCollapse = window.bootstrap.Collapse.getInstance(menu);
+        if (bsCollapse) bsCollapse.hide();
+      } else {
+        menu.classList.remove("show");
+      }
+    }
+  };
+
   return (
     <nav className={`navbar navbar-expand-lg navbar-dark custom-navbar sticky-top ${scroll ? "nav-scroll" : ""}`}>
       <div className="container">
 
-        <Link className="navbar-brand logo-text" to="/">
+        <Link className="navbar-brand logo-text" to="/" onClick={closeMenu}>
           Portfolio
         </Link>
 
@@ -58,11 +70,11 @@ function Header() {
         <div className="collapse navbar-collapse" id="menu">
           <ul className="navbar-nav ms-auto gap-lg-3 align-items-lg-center">
 
-            <li><NavLink className="nav-link" to="/">Home</NavLink></li>
-            <li><NavLink className="nav-link" to="/about">About</NavLink></li>
-            <li><NavLink className="nav-link" to="/portfolio">Portfolio</NavLink></li>
-            <li><NavLink className="nav-link" to="/resume">Resume</NavLink></li>
-            <li><NavLink className="nav-link" to="/contact">Contact</NavLink></li>
+            <li><NavLink className="nav-link" to="/" onClick={closeMenu}>Home</NavLink></li>
+            <li><NavLink className="nav-link" to="/about" onClick={closeMenu}>About</NavLink></li>
+            <li><NavLink className="nav-link" to="/portfolio" onClick={closeMenu}>Portfolio</NavLink></li>
+            <li><NavLink className="nav-link" to="/resume" onClick={closeMenu}>Resume</NavLink></li>
+            <li><NavLink className="nav-link" to="/contact" onClick={closeMenu}>Contact</NavLink></li>
 
             <li>
               <button className="theme-btn d-flex justify-content-center align-items-center" onClick={cycleTheme}>
