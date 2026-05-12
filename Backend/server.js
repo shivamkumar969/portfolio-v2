@@ -66,7 +66,8 @@ const SkillSchema = new mongoose.Schema({
   name: { type: String, required: true },
   color: { type: String, default: '#8b5cf6' },
   iconName: { type: String, default: 'FaCode' },
-  order: { type: Number, default: 0 }
+  order: { type: Number, default: 0 },
+  isVisible: { type: Boolean, default: true }
 });
 
 const Skill = mongoose.model('Skill', SkillSchema);
@@ -196,11 +197,17 @@ app.get('/api/skills', async (req, res) => {
 
 app.post('/api/skills', verifyAdmin, async (req, res) => {
   try {
-    const { name, color, iconName, order } = req.body;
+    const { name, color, iconName, order, isVisible } = req.body;
     const cleanName = name ? name.trim() : "";
     const cleanIcon = iconName ? iconName.trim() : "FaCode";
     const cleanColor = color ? color.trim() : "#8b5cf6";
-    const newSkill = new Skill({ name: cleanName, color: cleanColor, iconName: cleanIcon, order: Number(order) || 0 });
+    const newSkill = new Skill({ 
+      name: cleanName, 
+      color: cleanColor, 
+      iconName: cleanIcon, 
+      order: Number(order) || 0,
+      isVisible: isVisible !== undefined ? Boolean(isVisible) : true 
+    });
     await newSkill.save();
     res.json(newSkill);
   } catch (error) {
@@ -210,15 +217,28 @@ app.post('/api/skills', verifyAdmin, async (req, res) => {
 
 app.put('/api/skills/:id', verifyAdmin, async (req, res) => {
   try {
-    const { name, color, iconName, order } = req.body;
+    const { name, color, iconName, order, isVisible } = req.body;
     const updateData = {};
     if (name) updateData.name = name.trim();
     if (color) updateData.color = color.trim();
     if (iconName) updateData.iconName = iconName.trim();
     if (order !== undefined) updateData.order = Number(order);
+    if (isVisible !== undefined) updateData.isVisible = Boolean(isVisible);
 
     const updated = await Skill.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(updated);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.patch('/api/skills/:id/toggle', verifyAdmin, async (req, res) => {
+  try {
+    const skill = await Skill.findById(req.params.id);
+    if (!skill) return res.status(404).json({ error: 'Skill record not found' });
+    skill.isVisible = skill.isVisible === undefined ? false : !skill.isVisible;
+    await skill.save();
+    res.json(skill);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

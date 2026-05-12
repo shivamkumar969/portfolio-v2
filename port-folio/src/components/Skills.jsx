@@ -22,7 +22,9 @@ function Skills() {
         const res = await fetch(`${API_URL}/api/skills`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setSkills(data);
+          // Filter out disabled platform modules dynamically before client rendering
+          const activeSkills = data.filter(s => s.isVisible !== false);
+          setSkills(activeSkills);
         }
       } catch (error) {
         console.error("Failed to fetch live database skills:", error);

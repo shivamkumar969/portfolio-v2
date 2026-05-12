@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import emailjs from "@emailjs/browser";
-import { FaTrash, FaPlus, FaLock, FaImage, FaEdit, FaTimes, FaEnvelope, FaProjectDiagram, FaReply, FaCode, FaFilePdf, FaUserEdit, FaCheck } from "react-icons/fa";
+import { FaTrash, FaPlus, FaLock, FaImage, FaEdit, FaTimes, FaEnvelope, FaProjectDiagram, FaReply, FaCode, FaFilePdf, FaUserEdit, FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -305,6 +305,21 @@ function Admin() {
       }
     } catch (error) {
       console.error("Error deleting skill:", error);
+    }
+  };
+
+  const handleToggleSkillVisibility = async (id) => {
+    const token = sessionStorage.getItem("adminToken");
+    try {
+      const res = await fetch(`${API_URL}/api/skills/${id}/toggle`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchSkills();
+      }
+    } catch (error) {
+      console.error("Error toggling skill visibility:", error);
     }
   };
 
@@ -739,10 +754,11 @@ function Admin() {
                       <label className="form-label small text-light">Priority Sort Ordering</label>
                       <input 
                         type="number" 
-                        className="form-control" 
+                        className="form-control mb-1" 
                         value={skillFormData.order}
                         onChange={(e) => setSkillFormData({...skillFormData, order: parseInt(e.target.value) || 0})}
                       />
+                      <span className="small opacity-50 d-block">Reference past assigned weights listed in the grid to sort elements cleanly</span>
                     </div>
                     <div className="d-flex gap-2">
                       <button type="submit" className={`btn ${editingSkillId ? 'btn-info text-dark' : 'btn-theme'} flex-grow-1 py-3 fw-bold`}>
@@ -775,16 +791,31 @@ function Admin() {
                         {skills.map((s) => (
                           <tr 
                             key={s._id} 
-                            className="border-bottom border-secondary border-opacity-10"
-                            style={{ background: editingSkillId === s._id ? 'rgba(139, 92, 246, 0.15)' : 'transparent', transition: 'background 0.2s ease' }}
+                            className={`border-bottom border-secondary border-opacity-10 ${s.isVisible === false ? 'opacity-50' : ''}`}
+                            style={{ background: editingSkillId === s._id ? 'rgba(139, 92, 246, 0.15)' : 'transparent', transition: 'all 0.2s ease' }}
                           >
                             <td className="py-3" style={{ width: '60px' }}>
                               <span className="d-inline-block rounded-circle shadow-sm" style={{ width: '20px', height: '20px', background: s.color }}></span>
                             </td>
                             <td className="py-3 fw-bold">
                               {s.name} <span className="small text-theme opacity-75 ms-2">({s.iconName})</span>
+                              {/* Display gorgeous small visual sort ordering weight! */}
+                              <span className="badge bg-secondary bg-opacity-25 text-light ms-2 border border-secondary border-opacity-25" title="Sort Weight Index">
+                                weight: {s.order !== undefined ? s.order : 0}
+                              </span>
+                              {s.isVisible === false && (
+                                <span className="badge bg-danger bg-opacity-25 text-danger ms-2 small">Hidden</span>
+                              )}
                             </td>
                             <td className="py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
+                              {/* View / Visibility Toggle Button */}
+                              <button 
+                                className={`btn btn-sm ${s.isVisible === false ? 'btn-outline-secondary' : 'btn-outline-success'} me-2`} 
+                                onClick={() => handleToggleSkillVisibility(s._id)} 
+                                title={s.isVisible === false ? "Enable Dashboard Rendering" : "Disable Dashboard Rendering"}
+                              >
+                                {s.isVisible === false ? <FaEyeSlash /> : <FaEye />}
+                              </button>
                               <button 
                                 className={`btn btn-sm ${editingSkillId === s._id ? 'btn-info text-dark' : 'btn-outline-info'} me-2`} 
                                 onClick={() => startEditSkill(s)} 
