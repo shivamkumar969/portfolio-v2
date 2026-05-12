@@ -40,6 +40,12 @@ function Admin() {
   const [isSettingSaving, setIsSettingSaving] = useState(false);
   const [settingMsg, setSettingMsg] = useState("");
 
+  // Reply states
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [isSendingReply, setIsSendingReply] = useState(false);
+  const [replyStatus, setReplyStatus] = useState("");
+
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Check if already logged in
@@ -339,6 +345,44 @@ function Admin() {
       setSettingMsg("Upload handshake timeout ❌");
     } finally {
       setIsSettingSaving(false);
+    }
+  };
+
+  // Submit SMTP Response Relay
+  const handleSendReply = async (e) => {
+    e.preventDefault();
+    if (!replyText.trim() || !replyingTo) return;
+    setIsSendingReply(true);
+    setReplyStatus("Establishing secure SMTP link...");
+    const token = sessionStorage.getItem("adminToken");
+
+    try {
+      const res = await fetch(`${API_URL}/api/messages/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          toEmail: replyingTo.email,
+          subject: replyingTo.subject,
+          replyMessage: replyText
+        })
+      });
+      if (res.ok) {
+        setReplyStatus("Response transmitted securely! ✅");
+        setTimeout(() => {
+          setReplyingTo(null);
+          setReplyText("");
+          setReplyStatus("");
+        }, 2000);
+      } else {
+        setReplyStatus("Relay Handshake Refused ❌");
+      }
+    } catch (error) {
+      setReplyStatus("Network layer failure ❌");
+    } finally {
+      setIsSendingReply(false);
     }
   };
 
@@ -797,7 +841,51 @@ function Admin() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              className="d-flex flex-column gap-4"
             >
+              {/* Dynamic Replying Console */}
+              {replyingTo && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="glass-card p-4 border border-info border-opacity-50"
+                  style={{ borderRadius: '20px' }}
+                >
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="m-0 text-gradient d-flex align-items-center gap-2">
+                      <FaReply /> SMTP Reply Relay: <span className="text-light fw-bold">{replyingTo.name}</span>
+                    </h5>
+                    <button className="btn btn-sm btn-outline-secondary" onClick={() => setReplyingTo(null)}>
+                      <FaTimes /> Hide Panel
+                    </button>
+                  </div>
+                  
+                  <div className="bg-dark p-3 rounded-3 mb-3 small border border-secondary border-opacity-10 opacity-75">
+                    <div className="text-theme fw-bold mb-1">Subject Target: {replyingTo.subject}</div>
+                    <div className="text-light text-truncate">Inbound Payload: "{replyingTo.message}"</div>
+                  </div>
+
+                  <form onSubmit={handleSendReply}>
+                    <div className="mb-3">
+                      <textarea
+                        className="form-control"
+                        rows="4"
+                        placeholder="Type personalized executive resolution..."
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        required
+                      ></textarea>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                      <span className="small text-info fw-semibold animate-fade">{replyStatus}</span>
+                      <button type="submit" className="btn btn-theme px-4 py-2 fw-bold" disabled={isSendingReply}>
+                        {isSendingReply ? "Broadcasting relay..." : "Send Reply"}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
+
               <div className="glass-card p-4">
                 <h4 className="mb-4 d-flex align-items-center gap-2">
                   <FaEnvelope style={{ color: 'var(--primary-color)' }} /> Live Customer Transmissions
@@ -815,7 +903,7 @@ function Admin() {
                     </thead>
                     <tbody>
                       {messages.map((msg) => (
-                        <tr key={msg._id} className="border-bottom border-secondary border-opacity-10">
+                        <tr key={msg._id} className="border-bottom border-secondary border-opacity-10" style={{ background: replyingTo?._id === msg._id ? 'rgba(139, 92, 246, 0.08)' : 'transparent' }}>
                           <td className="py-3" style={{ maxWidth: '200px' }}>
                             <div className="fw-bold">{msg.name}</div>
                             <div className="small opacity-50">{msg.email}</div>
@@ -829,9 +917,13 @@ function Admin() {
                           </td>
                           <td className="py-3 text-end">
                             <div className="d-flex justify-content-end gap-2">
-                              <a href={`mailto:${msg.email}?subject=Re: ${msg.subject}`} className="btn btn-sm btn-outline-primary" title="Reply Direct">
+                              <button 
+                                className={`btn btn-sm ${replyingTo?._id === msg._id ? 'btn-theme' : 'btn-outline-primary'}`} 
+                                onClick={() => { setReplyingTo(msg); setReplyText(""); setReplyStatus(""); window.scrollTo({ top: 400, behavior: 'smooth' }); }} 
+                                title="Open Replying Console"
+                              >
                                 <FaReply />
-                              </a>
+                              </button>
                               <button className="btn btn-sm btn-outline-danger" onClick={() => deleteMessage(msg._id)} title="Purge Record">
                                 <FaTrash />
                               </button>

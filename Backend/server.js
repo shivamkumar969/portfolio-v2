@@ -276,6 +276,32 @@ app.get("/api/messages", verifyAdmin, async (req, res) => {
   }
 });
 
+app.post("/api/messages/reply", verifyAdmin, async (req, res) => {
+  const { toEmail, subject, replyMessage } = req.body;
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: `"Shivam Kumar" <${process.env.EMAIL_USER}>`,
+      to: toEmail,
+      subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+      text: replyMessage
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.json({ message: "Reply dispatched securely!" });
+  } catch (error) {
+    console.error("Reply Relay Failure:", error.message);
+    res.status(500).json({ error: "Failed to broadcast SMTP reply." });
+  }
+});
+
 app.delete("/api/messages/:id", verifyAdmin, async (req, res) => {
   try {
     await Message.findByIdAndDelete(req.params.id);
