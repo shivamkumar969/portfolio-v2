@@ -64,20 +64,28 @@
 
   /* Bolder Hero Image Container for Premium Mobile Readability */
   .hero-img-container {
-    margin-top: 35px !important;
-    min-height: 350px !important;
+    margin-top: 40px !important;
+    min-height: 380px !important;
     max-width: 340px !important;
   }
 
   .hero-glow-circle {
-    width: 260px !important;
-    height: 260px !important;
-    bottom: 12px !important;
+    width: 280px !important;
+    height: 280px !important;
+    bottom: 15px !important;
   }
 
   .hero-img {
-    max-width: 290px !important;
+    max-width: 320px !important;
     width: 100% !important;
+    animation: floatHeroMobile 5s ease-in-out infinite !important;
+    transform-origin: bottom center !important;
+  }
+
+  @keyframes floatHeroMobile {
+    0% { transform: scale(1.38) translateY(0); }
+    50% { transform: scale(1.38) translateY(-10px); }
+    100% { transform: scale(1.38) translateY(0); }
   }
 
   .hero-title {
