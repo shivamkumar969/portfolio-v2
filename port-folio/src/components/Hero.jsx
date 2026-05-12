@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { ReactTyped } from "react-typed";
 import Sliderbar from "../common/Sliderbar";
-import Shivam from "../assets/images/Shivam.png";
+// import Shivam from "../assets/images/Shivam.png";
+import Shivam from "../assets/images/Shiva.jpeg";
 
 function Hero() {
   return (
