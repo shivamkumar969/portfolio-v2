@@ -74,57 +74,90 @@ function Projects({ limit }) {
             <div className="col-lg-4 col-md-6" key={item.id}>
 
               <motion.div
-                className="project-card glass-card tilt-card h-100"
+                className="project-card glass-card h-100 d-flex flex-column premium-project-card"
                 whileHover={{
-                  rotateX: 6,
-                  rotateY: -6,
-                  scale: 1.03,
+                  y: -8,
+                  scale: 1.02,
                 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
 
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="project-img img-fluid"
-                  loading="lazy"
-                  style={{ width: '100%', height: '200px', objectFit: 'cover' }}
-                />
+                <div className="project-img-wrap">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="project-img img-fluid"
+                    loading="lazy"
+                  />
+                  
+                  <div className="project-overlay">
+                    {item.github && item.github !== "#" && (
+                      <a
+                        href={item.github}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="overlay-btn"
+                        title="View Source Code"
+                      >
+                        <FaGithub size={20} />
+                      </a>
+                    )}
+                    {item.live && item.live !== "#" && (
+                      <a
+                        href={item.live}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="overlay-btn"
+                        title="View Live Demo"
+                      >
+                        <FaExternalLinkAlt size={18} />
+                      </a>
+                    )}
+                  </div>
+                </div>
 
-                <h4 className="mt-3">
-                  {item.title}
-                </h4>
-                
-                {item.description && (
-                  <p className="text-light mt-2 mb-1" style={{ fontSize: '0.9rem' }}>
-                    {item.description}
-                  </p>
-                )}
+                <div className="project-content mt-3 d-flex flex-column flex-grow-1">
+                  <h4 className="project-title fw-bold text-gradient mb-2">
+                    {item.title}
+                  </h4>
+                  
+                  {item.description && (
+                    <p className="text-light flex-grow-1 mb-3" style={{ fontSize: '0.92rem', lineHeight: '1.6' }}>
+                      {item.description}
+                    </p>
+                  )}
 
-                <p className="text-light small mt-2">
-                  React.js | Bootstrap | Responsive UI
-                </p>
-
-                <div className="d-flex gap-3 mt-3">
-
-                  <a
-                    href={item.github || "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="overlay-btn"
-                  >
-                    <FaGithub />
-                  </a>
-
-                  <a
-                    href={item.live || "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="overlay-btn"
-                  >
-                    <FaExternalLinkAlt />
-                  </a>
-
+                  <div className="mt-auto pt-3 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                    <span className="text-light small fw-semibold opacity-75">
+                      React.js • Modern UI
+                    </span>
+                    
+                    {/* Always visible responsive quick links for touch devices or immediate clicks */}
+                    <div className="d-flex gap-3 align-items-center">
+                      {item.github && item.github !== "#" && (
+                        <a
+                          href={item.github}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-light hover-theme"
+                          title="Source Code"
+                        >
+                          <FaGithub size={16} />
+                        </a>
+                      )}
+                      {item.live && item.live !== "#" && (
+                        <a
+                          href={item.live}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-theme fw-bold small d-flex align-items-center gap-1 text-decoration-none"
+                          title="Live Demo"
+                        >
+                          Live <FaExternalLinkAlt size={11} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
               </motion.div>

@@ -394,13 +394,16 @@ function Admin() {
                         {projects.map((project) => (
                           <tr key={project.id} className="border-bottom border-secondary border-opacity-10">
                             <td className="py-3">
-                              <img 
-                                src={project.image} 
-                                alt={project.title} 
-                                className="rounded"
-                                style={{ width: '60px', height: '45px', objectFit: 'cover' }} 
-                                onError={(e) => e.target.src = "https://via.placeholder.com/60x45?text=Error"}
-                              />
+                              <div style={{ overflow: 'hidden', width: '70px', height: '50px', borderRadius: '8px' }}>
+                                <img 
+                                  src={project.image} 
+                                  alt={project.title} 
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }} 
+                                  onMouseOver={(e) => e.target.style.transform = 'scale(1.15)'}
+                                  onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+                                  onError={(e) => e.target.src = "https://via.placeholder.com/70x50?text=Error"}
+                                />
+                              </div>
                             </td>
                             <td className="py-3 fw-bold">{project.title}</td>
                             <td className="py-3 text-end">

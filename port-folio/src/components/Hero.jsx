@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { ReactTyped } from "react-typed";
 import Sliderbar from "../common/Sliderbar";
-import Shivam from "../assets/images/Shivam.png";
+// import Shivam from "../assets/images/Shivam.png";
+import Shivam from "../assets/images/Shiva.png";
 
 function Hero() {
   return (
@@ -21,7 +22,7 @@ function Hero() {
           {/* Left Content */}
           <div className="col-lg-6 text-center text-lg-start mt-5 mt-lg-0 content-col-fix">
             <span className="hero-tag">Hello, I'm</span>
-            
+
             <h1 className="hero-title">Shivam Kumar</h1>
 
             <h2 className="hero-subtitle">
@@ -41,7 +42,7 @@ function Hero() {
 
             {/* Mobile Social Icons */}
             <div className="mt-4 d-lg-none">
-               <Sliderbar />
+              <Sliderbar />
             </div>
           </div>
 
