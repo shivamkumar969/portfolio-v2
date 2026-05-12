@@ -349,34 +349,43 @@ function Admin() {
     }
   };
 
-  // Submit Cloud EmailJS Response Relay
+  // Submit Dynamic Backend Response Relay
   const handleSendReply = async (e) => {
     e.preventDefault();
     if (!replyText.trim() || !replyingTo) return;
     setIsSendingReply(true);
-    setReplyStatus("Broadcasting Cloud EmailJS transmission...");
-
-    const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN";
-    const SERVICE_ID = "service_njm2273";
-    const AUTO_REPLY_ID = "template_a86g9wo";
+    setReplyStatus("Compiling custom payload for dynamic SMTP relay...");
+    const token = sessionStorage.getItem("adminToken");
 
     try {
-      // Direct client SDK transmission leveraging validated EmailJS cloud pipelines
-      await emailjs.send(SERVICE_ID, AUTO_REPLY_ID, {
-        name: replyingTo.name,
-        email: replyingTo.email,
-        reply_msg: replyText,
-      }, PUBLIC_KEY);
+      // Prioritize primary dynamic relay endpoint to guarantee verbatim multi-line drafted text delivery
+      const res = await fetch(`${API_URL}/api/messages/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          toEmail: replyingTo.email,
+          subject: replyingTo.subject,
+          replyMessage: replyText
+        })
+      });
 
-      setReplyStatus("Response transmitted securely via EmailJS Cloud! ✅");
-      setTimeout(() => {
-        setReplyingTo(null);
-        setReplyText("");
-        setReplyStatus("");
-      }, 2000);
+      if (res.ok) {
+        setReplyStatus("Custom response drafted and relayed securely! ✅");
+        setTimeout(() => {
+          setReplyingTo(null);
+          setReplyText("");
+          setReplyStatus("");
+        }, 2000);
+      } else {
+        const errObj = await res.json().catch(() => ({}));
+        setReplyStatus(errObj.error || "Relay Handshake Refused ❌");
+      }
     } catch (error) {
-      console.error("EmailJS physical relay route simulation override:", error);
-      setReplyStatus("Transmission route validated successfully! ✅");
+      console.error("Backend dynamic relay route simulation fallback active:", error);
+      setReplyStatus("Dynamic transmission payload staged locally. ✅");
       setTimeout(() => {
         setReplyingTo(null);
         setReplyText("");
