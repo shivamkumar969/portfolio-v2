@@ -358,11 +358,12 @@ function Admin() {
 
     const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN";
     const SERVICE_ID = "service_njm2273";
-    const AUTO_REPLY_ID = "template_a86g9wo";
+    // Reuse primary auto-reply template target to bypass free-tier tier limits by managing content from JS
+    const SHARED_TEMPLATE_ID = "template_a86g9wo";
 
     try {
       // Inject drafted text into all common dynamic variable keys to ensure full template compilation compatibility
-      await emailjs.send(SERVICE_ID, AUTO_REPLY_ID, {
+      await emailjs.send(SERVICE_ID, SHARED_TEMPLATE_ID, {
         name: replyingTo.name,
         email: replyingTo.email,
         to_email: replyingTo.email,

@@ -35,10 +35,12 @@ function ContactForm() {
         message: data.message,
       }, PUBLIC_KEY);
 
-      // 2. Send Auto-Reply to User
+      // 2. Send Auto-Reply to User (Bypasses template tier limits by compiling strings dynamically)
       await emailjs.send(SERVICE_ID, AUTO_REPLY_ID, {
         name: data.user_name,
         email: data.user_email,
+        message: `Hello ${data.user_name},\n\nThank you for reaching out! I have received your message and will get back to you soon.\n\nBest regards,\nShivam Kumar`,
+        reply_msg: `Hello ${data.user_name},\n\nThank you for reaching out! I have received your message and will get back to you soon.\n\nBest regards,\nShivam Kumar`
       }, PUBLIC_KEY);
 
       // 3. Save to Database (Server-side)
