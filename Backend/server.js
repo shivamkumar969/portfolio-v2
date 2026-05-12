@@ -85,7 +85,8 @@ const MessageSchema = new mongoose.Schema({
   email: String,
   subject: String,
   message: String,
-  date: { type: Date, default: Date.now }
+  date: { type: Date, default: Date.now },
+  replied: { type: Boolean, default: false }
 });
 
 const Message = mongoose.model("Message", MessageSchema);
@@ -342,6 +343,18 @@ app.post("/api/messages/reply", verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error("Reply Relay Exception:", error.message);
     res.json({ message: "Reply relay loop captured successfully." });
+  }
+});
+
+app.patch("/api/messages/:id/reply-status", verifyAdmin, async (req, res) => {
+  try {
+    const msg = await Message.findById(req.params.id);
+    if (!msg) return res.status(404).json({ error: "Inquiry entry not found" });
+    msg.replied = true;
+    await msg.save();
+    res.json(msg);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

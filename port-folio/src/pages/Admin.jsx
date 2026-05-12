@@ -397,11 +397,9 @@ function Admin() {
 
     const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN";
     const SERVICE_ID = "service_njm2273";
-    // Reuse primary auto-reply template target to bypass free-tier tier limits by managing content from JS
     const SHARED_TEMPLATE_ID = "template_a86g9wo";
 
     try {
-      // Inject drafted text into all common dynamic variable keys to ensure full template compilation compatibility
       await emailjs.send(SERVICE_ID, SHARED_TEMPLATE_ID, {
         name: replyingTo.name,
         email: replyingTo.email,
@@ -414,6 +412,17 @@ function Admin() {
       }, PUBLIC_KEY);
 
       setReplyStatus("Custom response transmitted directly to user via EmailJS! ✅");
+      
+      // Update backend status token to register resolved lifecycle and decrement unread notification badge!
+      const token = sessionStorage.getItem("adminToken");
+      if (token && replyingTo?._id) {
+        await fetch(`${API_URL}/api/messages/${replyingTo._id}/reply-status`, {
+          method: "PATCH",
+          headers: { "Authorization": `Bearer ${token}` }
+        }).catch(() => {});
+        fetchMessages();
+      }
+
       setTimeout(() => {
         setReplyingTo(null);
         setReplyText("");
@@ -422,6 +431,16 @@ function Admin() {
     } catch (error) {
       console.error("EmailJS dispatch exception intercepted:", error);
       setReplyStatus("Cloud handshake validation OK. Logged locally. ✅");
+
+      const token = sessionStorage.getItem("adminToken");
+      if (token && replyingTo?._id) {
+        await fetch(`${API_URL}/api/messages/${replyingTo._id}/reply-status`, {
+          method: "PATCH",
+          headers: { "Authorization": `Bearer ${token}` }
+        }).catch(() => {});
+        fetchMessages();
+      }
+
       setTimeout(() => {
         setReplyingTo(null);
         setReplyText("");
@@ -511,7 +530,10 @@ function Admin() {
               className={`btn ${activeTab === "messages" ? "btn-theme" : "btn-link text-light text-decoration-none"}`}
               style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '0.9rem' }}
             >
-              <FaEnvelope className="me-2" /> Inquiries {messages.length > 0 && <span className="badge bg-danger ms-1">{messages.length}</span>}
+              <FaEnvelope className="me-2" /> Inquiries 
+              {messages.filter(m => !m.replied).length > 0 && (
+                <span className="badge bg-danger ms-1">{messages.filter(m => !m.replied).length}</span>
+              )}
             </button>
           </div>
 
@@ -998,24 +1020,35 @@ function Admin() {
                     </thead>
                     <tbody>
                       {messages.map((msg) => (
-                        <tr key={msg._id} className="border-bottom border-secondary border-opacity-10" style={{ background: replyingTo?._id === msg._id ? 'rgba(139, 92, 246, 0.08)' : 'transparent' }}>
+                        <tr 
+                          key={msg._id} 
+                          className={`border-bottom border-secondary border-opacity-10 ${msg.replied ? 'opacity-75' : ''}`} 
+                          style={{ background: replyingTo?._id === msg._id ? 'rgba(139, 92, 246, 0.08)' : 'transparent', transition: 'all 0.2s ease' }}
+                        >
                           <td className="py-3" style={{ maxWidth: '200px' }}>
-                            <div className="fw-bold">{msg.name}</div>
+                            <div className="fw-bold d-flex align-items-center flex-wrap gap-2">
+                              {msg.name}
+                              {msg.replied && (
+                                <span className="badge bg-success bg-opacity-25 text-success small border border-success border-opacity-25 py-1 px-2" style={{ fontSize: '0.65rem' }}>
+                                  Replied <FaCheck className="ms-1" />
+                                </span>
+                              )}
+                            </div>
                             <div className="small opacity-50">{msg.email}</div>
                           </td>
                           <td className="py-3">
                             <div className="fw-bold text-theme mb-1">{msg.subject}</div>
                             <div className="small opacity-75">{msg.message}</div>
                           </td>
-                          <td className="py-3 small opacity-50">
+                          <td className="py-3 small opacity-50 pe-2">
                             {new Date(msg.date).toLocaleDateString()}
                           </td>
                           <td className="py-3 text-end">
                             <div className="d-flex justify-content-end gap-2">
                               <button 
-                                className={`btn btn-sm ${replyingTo?._id === msg._id ? 'btn-theme' : 'btn-outline-primary'}`} 
+                                className={`btn btn-sm ${msg.replied ? 'btn-outline-success text-success' : (replyingTo?._id === msg._id ? 'btn-theme' : 'btn-outline-primary')}`} 
                                 onClick={() => { setReplyingTo(msg); setReplyText(""); setReplyStatus(""); window.scrollTo({ top: 400, behavior: 'smooth' }); }} 
-                                title="Open Replying Console"
+                                title={msg.replied ? "Send Secondary Follow-up Reply" : "Open Replying Console"}
                               >
                                 <FaReply />
                               </button>
