@@ -240,15 +240,7 @@ img {
 }
 
 .skill-box {
-  padding: 28px;
-  text-align: center;
-  font-size: 20px;
   transition: var(--transition);
-}
-
-.skill-box:hover,
-.project-card:hover {
-  transform: translateY(-8px);
 }
 
 .project-card {
