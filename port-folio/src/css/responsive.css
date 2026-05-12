@@ -62,30 +62,30 @@
     padding: 0 15px !important;
   }
 
-  /* Bolder Hero Image Container for Premium Mobile Readability */
+  /* Dominant Hero Image Container for Premium Mobile Readability */
   .hero-img-container {
-    margin-top: 40px !important;
-    min-height: 380px !important;
-    max-width: 340px !important;
+    margin-top: 45px !important;
+    min-height: 420px !important;
+    max-width: 360px !important;
   }
 
   .hero-glow-circle {
-    width: 280px !important;
-    height: 280px !important;
-    bottom: 15px !important;
+    width: 320px !important;
+    height: 320px !important;
+    bottom: 20px !important;
   }
 
   .hero-img {
-    max-width: 320px !important;
+    max-width: 340px !important;
     width: 100% !important;
     animation: floatHeroMobile 5s ease-in-out infinite !important;
     transform-origin: bottom center !important;
   }
 
   @keyframes floatHeroMobile {
-    0% { transform: scale(1.38) translateY(0); }
-    50% { transform: scale(1.38) translateY(-10px); }
-    100% { transform: scale(1.38) translateY(0); }
+    0% { transform: scale(1.65) translateY(0); }
+    50% { transform: scale(1.65) translateY(-10px); }
+    100% { transform: scale(1.65) translateY(0); }
   }
 
   .hero-title {

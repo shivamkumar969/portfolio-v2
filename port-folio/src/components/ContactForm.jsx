@@ -1,16 +1,16 @@
 import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
+import { FaUser, FaEnvelope, FaTag, FaCommentDots, FaPaperPlane } from "react-icons/fa";
 
 function ContactForm() {
   const form = useRef();
   const [msg, setMsg] = useState("");
-
   const [isSending, setIsSending] = useState(false);
 
   const sendEmail = async (e) => {
     e.preventDefault();
     setIsSending(true);
-    setMsg("Sending message...");
+    setMsg("Transmitting encrypted message...");
 
     const formData = new FormData(form.current);
     const data = {
@@ -24,7 +24,7 @@ function ContactForm() {
     const PUBLIC_KEY = "lyDWkAjAAkN_-LAuN";
     const SERVICE_ID = "service_njm2273";
     const TEMPLATE_ID = "template_x3je5me";
-    const AUTO_REPLY_ID = "template_a86g9wo"; // 👈 PASTE YOUR NEW AUTO-REPLY TEMPLATE ID HERE
+    const AUTO_REPLY_ID = "template_a86g9wo";
 
     try {
       // 1. Send Notification to Admin
@@ -41,137 +41,118 @@ function ContactForm() {
         email: data.user_email,
       }, PUBLIC_KEY);
 
-      // 2. Save to Database (Server-side)
+      // 3. Save to Database (Server-side)
       await fetch(`${API_URL}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
 
-      setMsg("Message Sent Successfully! The SK Digital Designs Team will contact you soon. ✅");
+      setMsg("Message Transmitted Successfully! I will get back to you shortly. ✅");
       form.current.reset();
     } catch (error) {
-      setMsg(`Failed to send message: ${error.text || error.message} ❌`);
+      setMsg(`Transmission Failed: ${error.text || error.message} ❌`);
     } finally {
       setIsSending(false);
     }
   };
 
   return (
-    <form ref={form} onSubmit={sendEmail} className="contact-form glass-card">
-      <div className="row g-3">
+    <div className="contact-form-wrapper max-w-2xl mx-auto px-2 px-md-0">
+      <form ref={form} onSubmit={sendEmail} className="contact-form glass-card" style={{ padding: '32px 24px', borderRadius: '24px' }}>
+        <div className="row g-4">
 
-        <div className="col-md-6">
-          <input
-            type="text"
-            name="user_name"
-            required
-            className="form-control"
-            placeholder="Your Name"
-          />
-        </div>
-
-        <div className="col-md-6">
-          <input
-            type="email"
-            name="user_email"
-            required
-            className="form-control"
-            placeholder="Your Email"
-          />
-        </div>
-
-        <div className="col-12">
-          <input
-            type="text"
-            name="subject"
-            required
-            className="form-control"
-            placeholder="Subject"
-          />
-        </div>
-
-        <div className="col-12">
-          <textarea
-            rows="5"
-            name="message"
-            required
-            className="form-control"
-            placeholder="Message"
-          ></textarea>
-        </div>
-
-        <div className="col-12">
-          <button className="btn btn-theme" disabled={isSending}>
-            {isSending ? "Sending..." : "Send Message"}
-          </button>
-        </div>
-
-        {msg && (
-          <div className="col-12 mt-2 text-info">
-            {msg}
+          {/* Name Input */}
+          <div className="col-12 col-md-6">
+            <div className="input-group-custom position-relative">
+              <span className="position-absolute top-50 translate-middle-y ms-3 text-theme opacity-75" style={{ zIndex: 5 }}>
+                <FaUser />
+              </span>
+              <input
+                type="text"
+                name="user_name"
+                required
+                className="form-control premium-input ps-5"
+                placeholder="Your Name"
+                style={{ height: '52px', borderRadius: '14px' }}
+              />
+            </div>
           </div>
-        )}
 
-      </div>
-    </form>
+          {/* Email Input */}
+          <div className="col-12 col-md-6">
+            <div className="input-group-custom position-relative">
+              <span className="position-absolute top-50 translate-middle-y ms-3 text-theme opacity-75" style={{ zIndex: 5 }}>
+                <FaEnvelope />
+              </span>
+              <input
+                type="email"
+                name="user_email"
+                required
+                className="form-control premium-input ps-5"
+                placeholder="Your Email"
+                style={{ height: '52px', borderRadius: '14px' }}
+              />
+            </div>
+          </div>
+
+          {/* Subject Input */}
+          <div className="col-12">
+            <div className="input-group-custom position-relative">
+              <span className="position-absolute top-50 translate-middle-y ms-3 text-theme opacity-75" style={{ zIndex: 5 }}>
+                <FaTag />
+              </span>
+              <input
+                type="text"
+                name="subject"
+                required
+                className="form-control premium-input ps-5"
+                placeholder="Subject"
+                style={{ height: '52px', borderRadius: '14px' }}
+              />
+            </div>
+          </div>
+
+          {/* Message Input */}
+          <div className="col-12">
+            <div className="input-group-custom position-relative">
+              <span className="position-absolute ms-3 text-theme opacity-75" style={{ top: '18px', zIndex: 5 }}>
+                <FaCommentDots />
+              </span>
+              <textarea
+                rows="5"
+                name="message"
+                required
+                className="form-control premium-input ps-5 pt-3"
+                placeholder="Your Message..."
+                style={{ borderRadius: '14px' }}
+              ></textarea>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="col-12 mt-2">
+            <button 
+              className="btn btn-theme w-100 d-flex justify-content-center align-items-center gap-2 py-3 fw-bold shadow-lg" 
+              style={{ borderRadius: '14px', fontSize: '1rem' }} 
+              disabled={isSending}
+            >
+              <FaPaperPlane />
+              {isSending ? "Transmitting..." : "Send Secure Message"}
+            </button>
+          </div>
+
+          {/* Status Message */}
+          {msg && (
+            <div className="col-12 mt-3 text-center fw-medium small p-3 rounded-3 bg-dark text-info border border-info border-opacity-25 animate-fade">
+              {msg}
+            </div>
+          )}
+
+        </div>
+      </form>
+    </div>
   );
 }
 
 export default ContactForm;
-
-
-
-
-
-
-
-// function ContactForm() {
-//   return (
-//     <form className="contact-form glass-card">
-//       <div className="row g-3">
-
-//         <div className="col-md-6">
-//           <input
-//             type="text"
-//             className="form-control"
-//             placeholder="Your Name"
-//           />
-//         </div>
-
-//         <div className="col-md-6">
-//           <input
-//             type="email"
-//             className="form-control"
-//             placeholder="Your Email"
-//           />
-//         </div>
-
-//         <div className="col-12">
-//           <input
-//             type="text"
-//             className="form-control"
-//             placeholder="Subject"
-//           />
-//         </div>
-
-//         <div className="col-12">
-//           <textarea
-//             rows="5"
-//             className="form-control"
-//             placeholder="Message"
-//           ></textarea>
-//         </div>
-
-//         <div className="col-12">
-//           <button className="btn btn-theme">
-//             Send Message
-//           </button>
-//         </div>
-
-//       </div>
-//     </form>
-//   );
-// }
-
-// export default ContactForm;
