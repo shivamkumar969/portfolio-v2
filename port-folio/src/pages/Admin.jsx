@@ -729,11 +729,11 @@ function Admin() {
                       <input 
                         type="text" 
                         className="form-control mb-1" 
-                        placeholder="e.g. FaReact, FaHtml5, FaNodeJs"
+                        placeholder="e.g. FaReact, SiMongodb, SiFlask"
                         value={skillFormData.iconName}
                         onChange={(e) => setSkillFormData({...skillFormData, iconName: e.target.value})}
                       />
-                      <span className="small opacity-50 d-block">Prefixes valid from react-icons/fa schemas</span>
+                      <span className="small opacity-50 d-block">Valid prefixes: FontAwesome (Fa...) & SimpleIcons (Si...)</span>
                     </div>
                     <div className="mb-4">
                       <label className="form-label small text-light">Priority Sort Ordering</label>

@@ -1,4 +1,5 @@
 import * as FaIcons from "react-icons/fa";
+import * as SiIcons from "react-icons/si";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
@@ -40,8 +41,8 @@ function Skills() {
 
         <div className="row g-3 g-md-4 justify-content-center">
           {skills.map((item, index) => {
-            // Dynamic wildcard lookup maps vector models dynamically from string identifiers
-            const IconComponent = FaIcons[item.iconName] || FaIcons.FaCode;
+            // Dynamic wildcard lookup maps vector models dynamically from string identifiers across both Fa and Si libraries
+            const IconComponent = FaIcons[item.iconName] || SiIcons[item.iconName] || FaIcons.FaCode;
             return (
               <div className="col-6 col-md-4 col-lg-3" key={index}>
                 <motion.div 
