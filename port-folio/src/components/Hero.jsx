@@ -17,7 +17,7 @@ function Hero() {
       <div className="blob blob2"></div>
 
       <div className="container">
-        <div className="row align-items-center mobile-row-fix flex-column-reverse flex-lg-row">
+        <div className="row align-items-center mobile-row-fix flex-column flex-lg-row">
 
           {/* Left Content */}
           <div className="col-lg-6 text-center text-lg-start mt-5 mt-lg-0 content-col-fix">

@@ -64,18 +64,19 @@
 
   /* Compact Hero Image Container */
   .hero-img-container {
-    margin-top: 20px !important;
-    min-height: 360px !important;
-    max-width: 300px !important;
+    margin-top: 30px !important;
+    min-height: 300px !important;
+    max-width: 280px !important;
   }
 
   .hero-glow-circle {
-    width: 240px !important;
-    height: 240px !important;
+    width: 220px !important;
+    height: 220px !important;
+    bottom: 5px !important;
   }
 
   .hero-img {
-    max-width: 250px !important;
+    max-width: 220px !important;
   }
 
   .hero-title {
