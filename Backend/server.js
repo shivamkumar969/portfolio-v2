@@ -76,7 +76,8 @@ const Skill = mongoose.model('Skill', SkillSchema);
 const SettingSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true },
   aboutContent: { type: String },
-  resumeUrl: { type: String }
+  resumeUrl: { type: String },
+  heroImageUrl: { type: String }
 });
 
 const Setting = mongoose.model('Setting', SettingSchema);
@@ -326,6 +327,23 @@ app.post('/api/settings/resume', verifyAdmin, upload.single('resume'), async (re
     }
     await setting.save();
     res.json({ message: 'Resume uploaded successfully', resumeUrl: req.file.path });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Hero Profile Image Re-Upload Endpoint
+app.post('/api/settings/hero-image', verifyAdmin, upload.single('heroImage'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Hero image file is required' });
+    let setting = await Setting.findOne({ key: 'global_profile' });
+    if (!setting) {
+      setting = new Setting({ key: 'global_profile', heroImageUrl: req.file.path });
+    } else {
+      setting.heroImageUrl = req.file.path;
+    }
+    await setting.save();
+    res.json({ message: 'Hero image updated successfully', heroImageUrl: req.file.path });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

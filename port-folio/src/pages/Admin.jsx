@@ -39,6 +39,8 @@ function Admin() {
   const [aboutContent, setAboutContent] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
+  const [heroImageFile, setHeroImageFile] = useState(null);
+  const [heroImageUrl, setHeroImageUrl] = useState("");
   const [isSettingSaving, setIsSettingSaving] = useState(false);
   const [settingMsg, setSettingMsg] = useState("");
 
@@ -128,6 +130,7 @@ function Admin() {
       if (data) {
         if (data.aboutContent) setAboutContent(data.aboutContent);
         if (data.resumeUrl) setResumeUrl(data.resumeUrl);
+        if (data.heroImageUrl) setHeroImageUrl(data.heroImageUrl);
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -398,6 +401,43 @@ function Admin() {
       }
     } catch (error) {
       setSettingMsg("Upload handshake timeout ❌");
+    } finally {
+      setIsSettingSaving(false);
+    }
+  };
+
+  // Submit Hero Profile Image Upload
+  const handleHeroImageUpload = async (e) => {
+    e.preventDefault();
+    if (!heroImageFile) {
+      alert("Please attach a local target image file first.");
+      return;
+    }
+    setIsSettingSaving(true);
+    setSettingMsg("Staging and authenticating hero image asset...");
+    const token = sessionStorage.getItem("adminToken");
+    const iData = new FormData();
+    iData.append("heroImage", heroImageFile);
+
+    try {
+      const res = await fetch(`${API_URL}/api/settings/hero-image`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: iData
+      });
+      const data = await res.json();
+      if (res.ok && data.heroImageUrl) {
+        setHeroImageUrl(data.heroImageUrl);
+        setHeroImageFile(null);
+        const imgInp = document.getElementById("heroImageUploadInput");
+        if (imgInp) imgInp.value = "";
+        setSettingMsg("Hero image configuration updated successfully! ✅");
+        setTimeout(() => setSettingMsg(""), 5000);
+      } else {
+        setSettingMsg("Failed to stage image override: Access forbidden ❌");
+      }
+    } catch (error) {
+      setSettingMsg("Timeout handling stream override ❌");
     } finally {
       setIsSettingSaving(false);
     }
@@ -910,9 +950,9 @@ function Admin() {
               exit={{ opacity: 0, y: -20 }}
               className="row g-5"
             >
-              {/* Bio Content Editor */}
-              <div className="col-lg-6">
-                <div className="glass-card p-4 h-100">
+              {/* Left Stack: Bio Content Editor & Hero Profile Uploader */}
+              <div className="col-lg-6 d-flex flex-column gap-4">
+                <div className="glass-card p-4">
                   <h4 className="mb-4 d-flex align-items-center gap-2">
                     <FaUserEdit style={{ color: 'var(--primary-color)' }} /> Override About Section Context
                   </h4>
@@ -921,7 +961,7 @@ function Admin() {
                       <label className="form-label small text-light opacity-75">Paragraph Narrative Text</label>
                       <textarea
                         className="form-control"
-                        rows="8"
+                        rows="5"
                         placeholder="Provide customized personal bio, objectives, and domain achievements..."
                         value={aboutContent}
                         onChange={(e) => setAboutContent(e.target.value)}
@@ -930,6 +970,35 @@ function Admin() {
                     </div>
                     <button type="submit" className="btn btn-theme w-100 py-3 fw-bold" disabled={isSettingSaving}>
                       Commit Bio Text override
+                    </button>
+                  </form>
+                </div>
+
+                <div className="glass-card p-4">
+                  <h4 className="mb-4 d-flex align-items-center gap-2">
+                    <FaImage style={{ color: '#06b6d4' }} /> Override Homepage 3D Viewport Image
+                  </h4>
+                  
+                  {heroImageUrl && (
+                    <div className="mb-3 p-2 bg-dark rounded-3 border border-secondary border-opacity-10 text-truncate small opacity-75">
+                      Current reference path mounted.
+                    </div>
+                  )}
+
+                  <form onSubmit={handleHeroImageUpload}>
+                    <div className="mb-4">
+                      <label className="form-label small text-light opacity-75">Select Replacement Profile Geometry Asset</label>
+                      <input
+                        type="file"
+                        id="heroImageUploadInput"
+                        accept="image/*"
+                        className="form-control p-2"
+                        onChange={(e) => setHeroImageFile(e.target.files[0])}
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="btn btn-outline-success w-100 py-3 fw-bold" disabled={isSettingSaving}>
+                      Authenticate & Bind Viewport Asset
                     </button>
                   </form>
                 </div>

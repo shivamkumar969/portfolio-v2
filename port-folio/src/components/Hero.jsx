@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ReactTyped } from "react-typed";
 import Sliderbar from "../common/Sliderbar";
@@ -7,12 +7,27 @@ import { FaReact, FaCheckCircle } from "react-icons/fa";
 
 function Hero() {
   const [tiltStyle, setTiltStyle] = useState({ transform: "rotateX(0deg) rotateY(0deg)" });
+  const [heroImgSrc, setHeroImgSrc] = useState(Shivam);
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    fetch(`${API_URL}/api/settings`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.heroImageUrl) {
+          const fullPath = data.heroImageUrl.startsWith("http") 
+            ? data.heroImageUrl 
+            : `${API_URL}/${data.heroImageUrl.replace(/\\/g, '/')}`;
+          setHeroImgSrc(fullPath);
+        }
+      })
+      .catch(err => console.error("Exception loading dynamic profile picture overrides:", err));
+  }, []);
 
   const handleMouseMove = (e) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - left) / width - 0.5;
     const y = (e.clientY - top) / height - 0.5;
-    // Apply clean math-driven multi-axis 3D dynamic perspective rotations
     const rotateY = x * 28; 
     const rotateX = -y * 28;
     setTiltStyle({ transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)` });
@@ -91,7 +106,7 @@ function Hero() {
                 {/* Target Profile Geometry Layer */}
                 <div className="hero-img-container mx-auto position-relative" style={{ transform: "translateZ(40px)", transition: "all 0.1s ease" }}>
                   <div className="hero-glow-circle"></div>
-                  <img src={Shivam} alt="Shivam Kumar" className="hero-img" loading="eager" />
+                  <img src={heroImgSrc} alt="Shivam Kumar" className="hero-img object-fit-cover" loading="eager" />
                 </div>
 
                 {/* Dynamic Spatial Card 2 */}
