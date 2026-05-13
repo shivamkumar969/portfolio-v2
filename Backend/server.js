@@ -82,6 +82,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'portfolio_projects',
     allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp', 'pdf'],
+    resource_type: 'auto',
   },
 });
 
