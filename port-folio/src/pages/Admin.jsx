@@ -52,6 +52,53 @@ function Admin() {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  function handleLogout() {
+    sessionStorage.removeItem("adminToken");
+    setIsAuthenticated(false);
+    setProjects([]);
+    setMessages([]);
+    setSkills([]);
+  }
+
+  // Securely intercept unauthorized access (401/403) to purge expired or invalid credentials instantly
+  const handleAuthError = (res) => {
+    if (res.status === 401 || res.status === 403) {
+      alert("Security Alert: Your authenticated session has expired or is invalid. Terminal locked.");
+      handleLogout();
+      return true;
+    }
+    return false;
+  };
+
+  // Implement auto-logout after 15 minutes of idle time to secure unattended administrative sessions
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let timeoutId;
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        alert("Security Auto-Lock: Unattended admin session timed out due to 15 minutes of inactivity.");
+        handleLogout();
+      }, 15 * 60 * 1000);
+    };
+
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keydown", resetTimer);
+    window.addEventListener("scroll", resetTimer);
+    window.addEventListener("click", resetTimer);
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("keydown", resetTimer);
+      window.removeEventListener("scroll", resetTimer);
+      window.removeEventListener("click", resetTimer);
+    };
+  }, [isAuthenticated]);
+
   // Check if already logged in
   useEffect(() => {
     const token = sessionStorage.getItem("adminToken");
@@ -106,6 +153,7 @@ function Admin() {
       const res = await fetch(`${API_URL}/api/messages`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+      if (handleAuthError(res)) return;
       const data = await res.json();
       if (Array.isArray(data)) setMessages(data);
     } catch (error) {
@@ -504,14 +552,6 @@ function Admin() {
     } finally {
       setIsSendingReply(false);
     }
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("adminToken");
-    setIsAuthenticated(false);
-    setProjects([]);
-    setMessages([]);
-    setSkills([]);
   };
 
   // --- LOGIN SCREEN ---

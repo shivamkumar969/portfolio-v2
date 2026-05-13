@@ -21,6 +21,51 @@ cloudinary.config({
 
 const app = express();
 
+// Trust reverse proxy (e.g., Vercel, Render, Heroku) so rate limiters track real client IPs instead of the proxy IP
+app.set('trust proxy', 1);
+
+// --- Custom Security Sanitization Middleware ---
+// Recursively strips keys starting with '$' or containing '.' to prevent MongoDB NoSQL Injection
+const sanitizeNoSQL = (obj) => {
+  if (obj && typeof obj === 'object') {
+    for (const key in obj) {
+      if (key.startsWith('$') || key.includes('.')) {
+        delete obj[key];
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        sanitizeNoSQL(obj[key]);
+      }
+    }
+  }
+};
+
+// Deep strip of script tags and malicious attributes to prevent XSS payloads
+const sanitizeString = (str) => {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/script\s*>/gi, '')
+    .replace(/<\s*iframe[^>]*>[\s\S]*?<\s*\/iframe\s*>/gi, '')
+    .replace(/(on\w+)\s*=/gi, 'disabled_attr=');
+};
+
+const sanitizeObjectStrings = (obj) => {
+  if (obj && typeof obj === 'object') {
+    for (const key in obj) {
+      if (key !== 'password' && typeof obj[key] === 'string') {
+        obj[key] = sanitizeString(obj[key]);
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        sanitizeObjectStrings(obj[key]);
+      }
+    }
+  }
+};
+
+const securitySanitizer = (req, res, next) => {
+  if (req.body) { sanitizeNoSQL(req.body); sanitizeObjectStrings(req.body); }
+  if (req.query) { sanitizeNoSQL(req.query); sanitizeObjectStrings(req.query); }
+  if (req.params) { sanitizeNoSQL(req.params); sanitizeObjectStrings(req.params); }
+  next();
+};
+
 // --- Security Middleware ---
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
@@ -29,6 +74,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(securitySanitizer);
 
 // --- Multer Cloudinary Storage ---
 const storage = new CloudinaryStorage({
@@ -111,9 +157,19 @@ const verifyAdmin = (req, res, next) => {
 
 // --- Rate Limiters ---
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
-  message: { error: 'Too many login attempts.' }
+  message: { error: 'Too many login attempts from this IP. Access temporarily restricted.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const contactLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 5, // Prevent spam flood attacks by capping public inquiries per IP
+  message: { error: 'Too many inquiries submitted from this IP. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // --- Routes ---
@@ -411,7 +467,7 @@ app.delete("/api/messages/:id", verifyAdmin, async (req, res) => {
 });
 
 // Contact Route
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', contactLimiter, async (req, res) => {
   const { user_name, user_email, subject, message } = req.body;
 
   try {
