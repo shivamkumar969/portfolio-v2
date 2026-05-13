@@ -79,10 +79,20 @@ app.use(securitySanitizer);
 // --- Multer Cloudinary Storage ---
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'portfolio_projects',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp', 'pdf'],
-    resource_type: 'auto',
+  params: async (req, file) => {
+    // If the asset is a PDF document, force resource_type to 'raw' so Cloudinary bypasses image processing layers and serves it natively
+    if (file.mimetype === 'application/pdf' || file.originalname.match(/\.pdf$/i)) {
+      return {
+        folder: 'portfolio_projects',
+        resource_type: 'raw',
+      };
+    }
+    // Otherwise configure standard image optimizations
+    return {
+      folder: 'portfolio_projects',
+      allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
+      resource_type: 'image',
+    };
   },
 });
 
