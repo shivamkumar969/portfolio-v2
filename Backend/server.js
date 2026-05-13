@@ -80,11 +80,13 @@ app.use(securitySanitizer);
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
-    // If the asset is a PDF document, force resource_type to 'raw' so Cloudinary bypasses image processing layers and serves it natively
+    // If the asset is a PDF document, force resource_type to 'raw' and append .pdf to the public_id to preserve format extension during client downloads
     if (file.mimetype === 'application/pdf' || file.originalname.match(/\.pdf$/i)) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       return {
         folder: 'portfolio_projects',
         resource_type: 'raw',
+        public_id: `shivam_resume_${uniqueSuffix}.pdf`,
       };
     }
     // Otherwise configure standard image optimizations
