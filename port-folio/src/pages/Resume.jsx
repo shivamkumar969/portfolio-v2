@@ -11,7 +11,10 @@ function Resume() {
       .then((res) => res.json())
       .then((data) => {
         if (data?.resumeUrl) {
-          setLiveResumeUrl(data.resumeUrl);
+          const fullPath = data.resumeUrl.startsWith("http")
+            ? data.resumeUrl
+            : `${API_URL}${data.resumeUrl.startsWith("/") ? "" : "/"}${data.resumeUrl}`;
+          setLiveResumeUrl(fullPath);
         }
       })
       .catch((err) => console.error("Error loading dynamic CV resource:", err));

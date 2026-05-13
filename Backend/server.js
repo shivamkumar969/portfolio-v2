@@ -103,6 +103,12 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit for high-res images and documents
 });
 
+// Dedicated memory storage instance specifically for buffering native PDF files directly to database storage
+const uploadMemory = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
 // --- MongoDB Connection ---
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/portfolioDB';
 mongoose.connect(MONGO_URI)
@@ -136,6 +142,7 @@ const SettingSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true },
   aboutContent: { type: String },
   resumeUrl: { type: String },
+  resumeBase64: { type: String }, // Direct persistent archiving layer for binary Base64 streams
   heroImageUrl: { type: String }
 });
 
@@ -384,20 +391,50 @@ app.post('/api/settings', verifyAdmin, async (req, res) => {
   }
 });
 
-// Resume File Re-Upload Endpoint
-app.post('/api/settings/resume', verifyAdmin, upload.single('resume'), async (req, res) => {
+// Resume File Re-Upload Endpoint (MongoDB Persistent Native Base64 Buffering)
+app.post('/api/settings/resume', verifyAdmin, uploadMemory.single('resume'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'Resume file is required' });
+    
+    const base64Data = req.file.buffer.toString('base64');
+    const directDownloadUrl = `${process.env.API_URL || ''}/api/settings/resume/download`;
+
     let setting = await Setting.findOne({ key: 'global_profile' });
     if (!setting) {
-      setting = new Setting({ key: 'global_profile', resumeUrl: req.file.path });
+      setting = new Setting({ 
+        key: 'global_profile', 
+        resumeUrl: directDownloadUrl,
+        resumeBase64: base64Data 
+      });
     } else {
-      setting.resumeUrl = req.file.path;
+      setting.resumeUrl = directDownloadUrl;
+      setting.resumeBase64 = base64Data;
     }
     await setting.save();
-    res.json({ message: 'Resume uploaded successfully', resumeUrl: req.file.path });
+    res.json({ message: 'Resume buffered and archived persistently inside MongoDB', resumeUrl: directDownloadUrl });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+// Dedicated Native PDF Stream Delivery Endpoint
+app.get('/api/settings/resume/download', async (req, res) => {
+  try {
+    const setting = await Setting.findOne({ key: 'global_profile' });
+    if (!setting || !setting.resumeBase64) {
+      return res.status(404).send('Requested PDF asset overrides are not currently published.');
+    }
+
+    const pdfBuffer = Buffer.from(setting.resumeBase64, 'base64');
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="Shivam_Kumar_Resume.pdf"');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    return res.end(pdfBuffer);
+  } catch (error) {
+    console.error("Database streaming failure intercepted:", error);
+    return res.status(500).send('Streaming interruption encountered.');
   }
 });
 

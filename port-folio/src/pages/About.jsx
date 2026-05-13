@@ -15,7 +15,12 @@ function About() {
         const data = await res.json();
         if (data) {
           if (data.aboutContent) setBio(data.aboutContent);
-          if (data.resumeUrl) setResumeLink(data.resumeUrl);
+          if (data.resumeUrl) {
+            const fullPath = data.resumeUrl.startsWith("http")
+              ? data.resumeUrl
+              : `${API_URL}${data.resumeUrl.startsWith("/") ? "" : "/"}${data.resumeUrl}`;
+            setResumeLink(fullPath);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch custom setting state:", error);
